@@ -32,12 +32,31 @@ public class StationService {
         return stationRepository.findById(id).map(station -> {
             station.setName(updatedStation.getName());
             station.setLocation(updatedStation.getLocation());
-            station.setCapacity(updatedStation.getCapacity());
+            station.setCapacity(updatedStation.getCapacity()); 
             return stationRepository.save(station);
         }).orElseThrow(() -> new RuntimeException("Station not found"));
     }
 
     public void deleteStation(Long id) {
         stationRepository.deleteById(id);
+    }
+
+    public int getTotalPinCount() {
+        return stationRepository.findAll().stream()
+                .mapToInt(Station::getCapacity) 
+                .sum();
+    }
+
+    public int getPinCountById(Long id) {
+        Station station = stationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Station not found"));
+        return station.getCapacity();
+    }
+
+    public Station updatePinCount(Long id, int newCount) {
+        Station station = stationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Station not found"));
+        station.setCapacity(newCount);
+        return stationRepository.save(station);
     }
 }

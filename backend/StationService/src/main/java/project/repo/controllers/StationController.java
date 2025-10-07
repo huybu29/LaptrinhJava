@@ -1,5 +1,6 @@
 package project.repo.controllers;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import project.repo.dtos.StationDTO;
 import project.repo.entity.Station;
@@ -49,5 +50,26 @@ public class StationController {
     @DeleteMapping("/{id}")
     public void deleteStation(@PathVariable Long id) {
         stationService.deleteStation(id);
+    }
+
+    @GetMapping("/pin-count")
+    public ResponseEntity<Integer> getTotalPinCount() {
+        int total = stationService.getTotalPinCount();
+        return ResponseEntity.ok(total);
+    }
+
+    @GetMapping("/{id}/pin-count")
+    public ResponseEntity<Integer> getPinCount(@PathVariable Long id) {
+        int count = stationService.getPinCountById(id);
+        return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/{id}/pin-count")
+    public ResponseEntity<StationDTO> updatePinCount(
+            @PathVariable Long id,
+            @RequestParam int newCount
+    ) {
+        Station updated = stationService.updatePinCount(id, newCount);
+        return ResponseEntity.ok(StationMapper.toDTO(updated));
     }
 }
