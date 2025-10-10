@@ -1,69 +1,72 @@
 package project.repo.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import project.repo.dtos.AuthRequest;
 import project.repo.dtos.AuthResponse;
-import project.repo.entity.AppUser;
-import project.repo.repository.AppUserRepository;
+import project.repo.entity.User;
+import project.repo.repository.UserRepository;
 import project.repo.service.JwtService;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AppUserRepository userRepository;
+    private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
-    // Hàm hash password thủ công (SHA-256)
-    private String hashPassword(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(password.getBytes());
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing password", e);
-        }
-    }
-
-    // Đăng ký
+    // 🔹 Đăng ký
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> register(@RequestBody AuthRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already taken");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("❌ Username already taken");
         }
-        AppUser user = AppUser.builder()
+
+        User user = User.builder()
                 .username(request.getUsername())
-                .password(hashPassword(request.getPassword())) // lưu password hash thủ công
+                .password(passwordEncoder.encode(request.getPassword())) // BCrypt
                 .role("ROLE_USER")
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .fullName(request.getFullName())
                 .build();
+
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok("✅ User registered successfully");
     }
 
-    // Đăng nhập
+    // 🔹 Đăng nhập
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        AppUser user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+        try {
+            User user = userRepository.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!user.getPassword().equals(hashPassword(request.getPassword()))) {
-            return ResponseEntity.badRequest().build();
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("❌ Invalid credentials");
+            }
+
+            String token = jwtService.generateToken(user.getUsername(), user.getRole());
+            return ResponseEntity.ok(new AuthResponse(token));
+
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("❌ User not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("⚠️ Login failed: " + e.getMessage());
         }
-
-        String token = jwtService.generateToken(user.getUsername());
-        return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    // Đăng xuất
+    // 🔹 Đăng xuất (thực tế chỉ là clear token bên client)
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
-        return ResponseEntity.ok("Logout successful (clear token on client)");
+        return ResponseEntity.ok("✅ Logout successful (clear token on client)");
     }
 }
