@@ -1,0 +1,43 @@
+package project.repo.controllers;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import project.repo.entity.AdminProfile;
+import project.repo.service.AdminProfileService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin-profiles")
+@RequiredArgsConstructor
+public class AdminProfileController {
+
+    private final AdminProfileService adminProfileService;
+
+    @PostMapping
+    public ResponseEntity<AdminProfile> create(@RequestBody AdminProfile profile) {
+        return ResponseEntity.ok(adminProfileService.createProfile(profile));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AdminProfile> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminProfileService.getProfileById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AdminProfile>> getAll() {
+        return ResponseEntity.ok(adminProfileService.getAllProfiles());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AdminProfile> update(@PathVariable Long id, @RequestBody AdminProfile profile) {
+        return ResponseEntity.ok(adminProfileService.updateProfile(id, profile));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        adminProfileService.deleteProfile(id);
+        return ResponseEntity.ok("Admin profile deleted successfully");
+    }
+}
