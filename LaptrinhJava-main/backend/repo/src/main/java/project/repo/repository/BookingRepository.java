@@ -6,4 +6,5 @@ import project.repo.entity.Booking;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+    // có thể thêm custom query nếu cần
 }

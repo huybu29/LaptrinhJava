@@ -1,19 +1,8 @@
 package project.repo.repository;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import project.repo.entity.User;
 
-@Repository
-public class UserRepository {
-
-    public List<User> findAll() {
-        return Arrays.asList(
-            new User(1, "ThanhTuyen"),
-            new User(2, "BichThui"),
-            new User(3, "Charlie")
-        );
-    }
+public interface UserRepository extends JpaRepository<User, Long> {
+    User findByUsername(String username);
 }

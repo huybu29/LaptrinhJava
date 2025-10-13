@@ -1,47 +1,36 @@
 package project.repo.service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Service;
-
+import project.repo.dtos.BookingDTO;
 import project.repo.entity.Booking;
+import project.repo.entity.User;
+import project.repo.mapper.BookingMapper;
+import project.repo.repository.BookingRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class BookingService {
 
-    // Danh sách Booking giả lập
-    private final List<Booking> bookings = new ArrayList<>();
+    private final BookingRepository bookingRepository;
+    private final BookingMapper bookingMapper;
 
-    // Hàm tạo dữ liệu mẫu
-    public BookingService() {
-        Booking b1 = new Booking(1L, "Pending", LocalDateTime.now().minusDays(1), null);
-        Booking b2 = new Booking(2L, "Completed", LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1));
-        bookings.add(b1);
-        bookings.add(b2);
+    public BookingService(BookingRepository bookingRepository, BookingMapper bookingMapper) {
+        this.bookingRepository = bookingRepository;
+        this.bookingMapper = bookingMapper;
     }
 
-    // 1. Trả về tất cả booking
-    public List<Booking> getAllBookings() {
-        return bookings;
+    public List<BookingDTO> getAllBookings() {
+        return bookingRepository.findAll().stream()
+                .map(bookingMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    // 2. Xác nhận booking theo id
-    public String confirmBooking(Long id) {
-        for (Booking b : bookings) {
-            if (b.getId().equals(id)) {
-                b.setStatus("Confirmed");
-                b.setCompletedAt(LocalDateTime.now());
-                return "Booking " + id + " confirmed successfully!";
-            }
-        }
-        return "Booking ID not found!";
-    }
-
-    // Test nhanh (nếu cần chạy riêng)
-    public static void main(String[] args) {
-        BookingService service = new BookingService();
-        System.out.println(service.getAllBookings());
-        System.out.println(service.confirmBooking(1L));
+    // 🟣 Thêm booking mới
+    public BookingDTO createBooking(BookingDTO dto, User user) {
+        Booking booking = bookingMapper.toEntity(dto, user);
+        bookingRepository.save(booking);
+        return bookingMapper.toDTO(booking);
     }
 }
