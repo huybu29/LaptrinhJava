@@ -18,4 +18,5 @@ public class UserDTO {
     private String role;
     private String status;   // ACTIVE, INACTIVE
     private LocalDateTime createdAt;
+    private Long stationId;
 }

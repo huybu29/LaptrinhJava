@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../services/AuthContext";
@@ -10,7 +9,7 @@ const Navbar = () => {
     <nav className="bg-gray-900 text-gray-100 shadow-md px-6 py-4 flex justify-between items-center">
       {/* Logo */}
       <div className="text-2xl font-extrabold tracking-wide">
-        <Link to="/driver" className="hover:text-white transition duration-200">
+        <Link to="/" className="hover:text-white transition duration-200">
           ⚡ EV Service Center
         </Link>
       </div>
@@ -42,6 +41,7 @@ const Navbar = () => {
               </span>
             </span>
 
+            {/* --- Role-based navigation buttons --- */}
             {user?.role === "ROLE_ADMIN" && (
               <Link to="/admin">
                 <button className="border border-gray-500 text-gray-100 hover:bg-gray-800 px-3 py-2 rounded-lg text-sm transition">
@@ -50,6 +50,23 @@ const Navbar = () => {
               </Link>
             )}
 
+            {user?.role === "ROLE_STAFF" && (
+              <Link to="/staff">
+                <button className="border border-gray-500 text-gray-100 hover:bg-gray-800 px-3 py-2 rounded-lg text-sm transition">
+                  🔋 Nhân viên trạm
+                </button>
+              </Link>
+            )}
+
+            {user?.role === "ROLE_DRIVER" && (
+              <Link to="/driver">
+                <button className="border border-gray-500 text-gray-100 hover:bg-gray-800 px-3 py-2 rounded-lg text-sm transition">
+                  🚗 Bảng điều khiển tài xế
+                </button>
+              </Link>
+            )}
+
+            {/* Logout */}
             <button
               onClick={logout}
               className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition"
