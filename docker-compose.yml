@@ -1,0 +1,207 @@
+
+
+networks:
+  backend-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: backend
+      MYSQL_USER: user
+      MYSQL_PASSWORD: springboot
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -proot || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend-net
+
+  config-server:
+    build:
+      context: ./backend/config-server
+    container_name: config-server
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/huybu29/spring-config-repo
+      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: main
+      GIT_SSL_NO_VERIFY: "true"
+    depends_on:
+      - mysql-db
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  eureka-server:
+    build:
+      context: ./backend/eureka-server
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888/
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  gateway:
+    build:
+      context: ./backend/api-gateway
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8067:8067"
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  # Template cho các microservice backend
+  user-service:
+    build: ./backend/UserService
+    container_name: user-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  station-service:
+    build: ./backend/StationService
+    container_name: station-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  payment-service:
+    build: ./backend/PaymentService
+    container_name: payment-service
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  vehicle-battery-service:
+    build: ./backend/Vehicle-BatteryService
+    container_name: vehicle-battery-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  admin-service:
+    build: ./backend/AdminService
+    container_name: admin-service
+    restart: unless-stopped
+    ports:
+      - "8069:8069"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  booking-service:
+    build: ./backend/BookingService
+    container_name: booking-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+
+  support-service:
+    build: ./backend/SupportService
+    container_name: support-service
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    depends_on:
+      - eureka-server
+      - mysql-db
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - backend-net
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    depends_on:
+      - mysql-db
+    networks:
+      - backend-net
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    networks:
+      - backend-net

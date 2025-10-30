@@ -1,0 +1,16 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: vehicle-battery-service
+  config:
+    import: "optional:configserver:http://localhost:8888"
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: vehicle-battery-service            
+    prefer-ip-address: true 

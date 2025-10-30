@@ -1,9 +1,18 @@
 package project.repo.entity;
 
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
 @Entity
-@Table(name = "stations")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Table(name="stations")
 public class Station {
 
     @Id
@@ -15,29 +24,16 @@ public class Station {
 
     @Column(nullable = false)
     private String location;
-
+    private Double latitude;
+    private Double longitude;
+    @Enumerated(EnumType.STRING)
+    private StationStatus status; // ACTIVE, INACTIVE, MAINTENANCE
     @Column
     private int capacity; // số lượng pin hoặc dung lượng trạm
+    public enum StationStatus {
+    ACTIVE, INACTIVE, MAINTENANCE
+}
 
-    // Constructor
-    public Station() {}
-    
-    public Station(String name, String location, int capacity) {
-        this.name = name;
-        this.location = location;
-        this.capacity = capacity;
-    }
 
-    // Getter & Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-    
-    public int getCapacity() { return capacity; }
-    public void setCapacity(int capacity) { this.capacity = capacity; }
+  
 }

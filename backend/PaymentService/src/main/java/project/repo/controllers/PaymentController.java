@@ -1,39 +1,80 @@
 package project.repo.controllers;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import project.repo.dtos.PaymentDto;
+import project.repo.service.PaymentService;
+
 import java.util.List;
-import project.repo.dtos.*;
-import project.repo.service.*;
-import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
 @Validated
-@CrossOrigin(origins = "http://localhost:5173")
 public class PaymentController {
-  private final PaymentService paymentService;
-  @GetMapping("/")
-  public List<PaymentDto> getAllPayment() {
-      return paymentService.getAllPayments();
-  }
-  @GetMapping("/{userID}")
-  public List<PaymentDto> getPaymentByUserID(@PathVariable Long userID) {
-      return paymentService.getPaymentByUserID(userID);
-  }
 
-  @PostMapping("/")
-  public PaymentDto createPayment(@RequestBody PaymentDto dto) {
-    return paymentService.createPayment(dto);
-  }
-  
+    private final PaymentService paymentService;
+
+    // 🔹 Helper kiểm tra role
+    private void checkRole(String roleHeader, String... allowedRoles) {
+        for (String role : allowedRoles) {
+            if (roleHeader != null && roleHeader.equalsIgnoreCase("ROLE_" + role)) {
+                return;
+            }
+        }
+        throw new RuntimeException("Access denied: required role " + String.join(", ", allowedRoles));
+    }
+
+    // 🔹 Lấy tất cả thanh toán (STAFF, ADMIN)
+    @GetMapping("/")
+    public List<PaymentDto> getAllPayment(@RequestHeader("X-User-Role") String role) {
+        checkRole(role, "STAFF", "ADMIN");
+        return paymentService.getAllPayments();
+    }
+
+    // 🔹 Lấy thanh toán theo userID (CUSTOMER chỉ được xem thanh toán của mình, STAFF/ADMIN xem tất cả)
+    @GetMapping("/{userID}")
+    public List<PaymentDto> getPaymentByUserID(
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader("X-User-Id") Long currentUserId,
+            @PathVariable Long userID) {
+
+        if ("ROLE_CUSTOMER".equalsIgnoreCase(role)) {
+            if (!currentUserId.equals(userID)) {
+                throw new RuntimeException("Access denied: CUSTOMER can only view their own payments");
+            }
+        } else {
+            checkRole(role, "STAFF", "ADMIN");
+        }
+
+        return paymentService.getPaymentByUserID(userID);
+    }
+
+    // 🔹 Tạo thanh toán (CUSTOMER, STAFF, ADMIN)
+    @PostMapping("/")
+    public PaymentDto createPayment(
+            @RequestHeader("X-User-Role") String role,
+            @RequestBody PaymentDto dto) {
+
+        checkRole(role, "CUSTOMER", "STAFF", "ADMIN");
+        return paymentService.createPayment(dto);
+    }
+     @GetMapping("/me")
+    public List<PaymentDto> geMytPayment(
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader("X-User-Id") Long currentUserId
+           ) {
+
+        return paymentService.getPaymentByUserID(currentUserId);
+   }
+   @PutMapping("/{paymentId}")
+    public PaymentDto updatePayment(
+        @RequestHeader("X-User-Role") String role,
+        @PathVariable Long paymentId,
+        @RequestBody PaymentDto dto) {
+
+    checkRole(role, "STAFF", "ADMIN");
+    return paymentService.updatePayment(paymentId, dto);
+}
 }

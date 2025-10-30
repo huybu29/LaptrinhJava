@@ -18,16 +18,16 @@ public class BatteryService {
   private final BatteryRepository batteryRepository;
   private final BatteryMapper batteryMapper;
   public List<BatteryDTO> getAllBattery(){
-    return batteryRepository.findAll().stream().map(battery -> batteryMapper.toDto(battery)).collect(Collectors.toList());
+    return batteryRepository.findAll().stream().map(battery -> batteryMapper.toDTO(battery)).collect(Collectors.toList());
   };
   public BatteryDTO createBattery(BatteryDTO dto){
-    return batteryMapper.toDto(batteryRepository.save(batteryMapper.toBattery(dto)));
+    return batteryMapper.toDTO(batteryRepository.save(batteryMapper.toBattery(dto)));
   };
   public BatteryDTO getBatteryById(Long id){
-    return batteryRepository.findById(id).map(battery -> batteryMapper.toDto(battery)).orElse(null);
+    return batteryRepository.findById(id).map(battery -> batteryMapper.toDTO(battery)).orElse(null);
   };
   public BatteryDTO updateBattery(BatteryDTO dto){
-    return batteryMapper.toDto(batteryRepository.save(batteryMapper.toBattery(dto)));
+    return batteryMapper.toDTO(batteryRepository.save(batteryMapper.toBattery(dto)));
   };
   public void deleteBattery(Long id){
     batteryRepository.deleteById(id);

@@ -7,6 +7,6 @@ import project.repo.entity.Vehicle;
 
 @Mapper(componentModel = "spring")
 public interface VehicleMapper {
-  VehicleDTO toDto(Vehicle vehicle);
+  VehicleDTO toDTO(Vehicle vehicle);
   Vehicle toVehicle(VehicleDTO dto);
 }

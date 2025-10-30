@@ -18,24 +18,30 @@ public class VehicleService {
   private final VehicleRepository vehicleRepository;
   private final VehicleMapper vehicleMapper;
   public List<VehicleDTO> getAllVehicle(){
-    return vehicleRepository.findAll().stream().map(vehicle -> vehicleMapper.toDto(vehicle)).collect(Collectors.toList());
+    return vehicleRepository.findAll().stream().map(vehicle -> vehicleMapper.toDTO(vehicle)).collect(Collectors.toList());
   };
   public VehicleDTO createVehicle(VehicleDTO dto){
-    return vehicleMapper.toDto(vehicleRepository.save(vehicleMapper.toVehicle(dto)));
+    return vehicleMapper.toDTO(vehicleRepository.save(vehicleMapper.toVehicle(dto)));
   };
   public VehicleDTO getVehicleById(Long id){
-    return vehicleRepository.findById(id).map(vehicle -> vehicleMapper.toDto(vehicle)).orElse(null);
+    return vehicleRepository.findById(id).map(vehicle -> vehicleMapper.toDTO(vehicle)).orElse(null);
   };
   public  VehicleDTO updateVehicleById(Long id, VehicleDTO dto){
     return vehicleRepository.findById(id).map(vehicle ->{
       vehicle.setVin(dto.getVin());
       vehicle.setBatteryType(dto.getBatteryType());
       vehicle.setOwnerId(dto.getOwnerId());
-      return vehicleMapper.toDto(vehicleRepository.save(vehicle));
+      return vehicleMapper.toDTO(vehicleRepository.save(vehicle));
     }) .orElse(null);
   };
   public VehicleDTO getVehicleByVin(String vin){
-    return vehicleMapper.toDto(vehicleRepository.getVehicleByVin(vin));
+    return vehicleMapper.toDTO(vehicleRepository.getVehicleByVin(vin));
   };
-  
+  public List<VehicleDTO> getVehicleByUserId(Long id){
+    return vehicleRepository.getVehicleByOwnerId(id).stream().map(vehicle -> vehicleMapper.toDTO(vehicle)).collect(Collectors.toList());
+
+  }
+  public void deleteVehicle(Long id){
+    vehicleRepository.deleteById(id);
+  }
 }

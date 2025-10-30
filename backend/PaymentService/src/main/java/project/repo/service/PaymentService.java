@@ -29,20 +29,13 @@ public class PaymentService {
      Payment payment = paymentMapper.toEntity(dto);
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
-        payment.setStatus(Payment.PaymentStatus.COMPLETED); // MVP giả lập thành công
+        
 
         
         Payment savedPayment = paymentRepository.save(payment);
 
         
-        Invoice invoice = Invoice.builder()
-                .paymentID(savedPayment.getPaymentID())
-                .details(generateInvoiceDetails(savedPayment))
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        invoiceRepository.save(invoice);
+      
 
       
         PaymentDto result = paymentMapper.toDto(savedPayment);
@@ -60,5 +53,32 @@ public class PaymentService {
                 payment.getUserID(),
                 payment.getCreatedAt());
     }
+  public PaymentDto updatePayment(Long paymentId, PaymentDto dto) {
+    // 🔹 Tìm thanh toán theo ID
+    Payment existingPayment = paymentRepository.findById(paymentId)
+            .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentId));
+
+    // 🔹 Cập nhật các trường có thể thay đổi
+    if (dto.getAmount() >=0) {
+        existingPayment.setAmount(dto.getAmount());
+    }
+    if (dto.getMethod() != null) {
+        existingPayment.setMethod(dto.getMethod());
+    }
+    if (dto.getStatus() != null) {
+        existingPayment.setStatus(dto.getStatus());
+    }
+
+    // 🔹 Cập nhật thời gian sửa
+    existingPayment.setUpdatedAt(LocalDateTime.now());
+
+    // 🔹 Lưu lại
+    Payment updated = paymentRepository.save(existingPayment);
+
+    
+
+    return paymentMapper.toDto(updated);
+}
+  
 }
  

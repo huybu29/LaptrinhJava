@@ -7,7 +7,7 @@ import project.repo.entity.Battery;
 
 @Mapper(componentModel = "spring")
 public interface BatteryMapper {
- BatteryDTO toDto(Battery battery);
+ BatteryDTO toDTO(Battery battery);
  Battery toBattery(BatteryDTO dto);
   
 } 

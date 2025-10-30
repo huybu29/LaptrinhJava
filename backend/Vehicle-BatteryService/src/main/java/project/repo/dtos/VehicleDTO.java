@@ -1,5 +1,7 @@
 package project.repo.dtos;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,4 +15,5 @@ public class VehicleDTO {
   private String vin;
   private String batteryType;
   private Long ownerId;
-}
+  private LocalDateTime registeredAt;
+} 

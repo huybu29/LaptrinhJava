@@ -1,11 +1,12 @@
 package project.repo.service;
 
-import org.springframework.stereotype.Service;
-import project.repo.entity.Station;
-import project.repo.repository.StationRepository;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import project.repo.entity.Station;
+import project.repo.repository.StationRepository;
 
 @Service
 public class StationService {
@@ -29,13 +30,17 @@ public class StationService {
     }
 
     public Station updateStation(Long id, Station updatedStation) {
-        return stationRepository.findById(id).map(station -> {
-            station.setName(updatedStation.getName());
-            station.setLocation(updatedStation.getLocation());
-            station.setCapacity(updatedStation.getCapacity()); 
-            return stationRepository.save(station);
-        }).orElseThrow(() -> new RuntimeException("Station not found"));
-    }
+    return stationRepository.findById(id).map(station -> {
+        station.setName(updatedStation.getName());
+        station.setLocation(updatedStation.getLocation());
+        station.setCapacity(updatedStation.getCapacity());
+        station.setLatitude(updatedStation.getLatitude());
+        station.setLongitude(updatedStation.getLongitude());
+        station.setStatus(updatedStation.getStatus());
+        return stationRepository.save(station);
+    }).orElseThrow(() -> new RuntimeException("Station not found"));
+}
+
 
     public void deleteStation(Long id) {
         stationRepository.deleteById(id);

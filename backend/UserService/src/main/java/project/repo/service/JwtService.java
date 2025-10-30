@@ -1,132 +1,87 @@
 package project.repo.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import project.repo.entity.User;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
+import java.util.Date;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret:MY_SECRET_KEY_1234567890}") // có thể set trong application.properties
-    private String SECRET;
+    // 🔑 Khóa bí mật — PHẢI giống 100% với khóa ở Gateway
+    private static final String SECRET = "ThisIsA32ByteLongSecretKeyForJWTs123456!!!"; // 32 bytes
+
+    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
     @Value("${jwt.expiration:3600000}") // 1 giờ mặc định
     private long EXPIRATION;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    // 🔹 Hàm ký HMAC-SHA256
-    private String hmacSha256(String data, String secret) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            mac.init(secretKey);
-            byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
-        } catch (Exception e) {
-            throw new RuntimeException("Error while signing JWT", e);
-        }
-    }
-
-    // 🔹 Tạo token (lưu username + role)
-    public String generateToken(String username, String role) {
+    // 🔹 Tạo token (lưu username + role + userId)
+    public String generateToken(User user) {
         long now = System.currentTimeMillis();
-        long exp = now + EXPIRATION;
 
-        String header = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString("{\"alg\":\"HS256\",\"typ\":\"JWT\"}".getBytes(StandardCharsets.UTF_8));
-
-        String payload = String.format(
-                "{\"sub\":\"%s\",\"role\":\"%s\",\"iat\":%d,\"exp\":%d}",
-                username, role, now / 1000, exp / 1000
-        );
-        String payloadBase64 = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(payload.getBytes(StandardCharsets.UTF_8));
-
-        String signature = hmacSha256(header + "." + payloadBase64, SECRET);
-
-        return header + "." + payloadBase64 + "." + signature;
+        return Jwts.builder()
+                .setSubject(user.getUsername())
+                .claim("role", user.getRole())
+                .claim("userId", user.getId())
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + EXPIRATION))
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .compact();
     }
 
-    // 🔹 Lấy username từ token
+    // 🔹 Giải mã token và lấy userId
+    public Long extractUserId(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("userId", Long.class);
+    }
+
+    // 🔹 Giải mã token và lấy username
     public String extractUsername(String token) {
-        try {
-            String payloadJson = decodePayload(token);
-            JsonNode node = objectMapper.readTree(payloadJson);
-            return node.get("sub").asText();
-        } catch (Exception e) {
-            return null;
-        }
+        Claims claims = parseToken(token);
+        return claims.getSubject();
     }
 
     // 🔹 Lấy role từ token
     public String extractRole(String token) {
-        try {
-            String payloadJson = decodePayload(token);
-            JsonNode node = objectMapper.readTree(payloadJson);
-            return node.get("role").asText();
-        } catch (Exception e) {
-            return null;
-        }
+        Claims claims = parseToken(token);
+        return claims.get("role", String.class);
     }
 
-    // 🔹 Kiểm tra token có hợp lệ cho username (phiên bản cũ)
-    public boolean validateToken(String token, String username) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length != 3) return false;
-
-            // kiểm tra chữ ký
-            String signatureCheck = hmacSha256(parts[0] + "." + parts[1], SECRET);
-            if (!signatureCheck.equals(parts[2])) return false;
-
-            // giải mã payload
-            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
-            JsonNode node = objectMapper.readTree(payloadJson);
-
-            // check exp
-            long exp = node.get("exp").asLong();
-            if (exp * 1000 <= System.currentTimeMillis()) {
-                return false; // token hết hạn
-            }
-
-            // check username
-            String subject = node.get("sub").asText();
-            return subject.equals(username); // username trong token phải khớp
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    // 🔹 Kiểm tra token có hợp lệ với UserDetails (phiên bản chuẩn)
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    // 🔹 Kiểm tra token hợp lệ
+    public boolean validateToken(String token, UserDetails userDetails) {
         String username = extractUsername(token);
         return username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     // 🔹 Kiểm tra token hết hạn
     private boolean isTokenExpired(String token) {
-        try {
-            String payloadJson = decodePayload(token);
-            JsonNode node = objectMapper.readTree(payloadJson);
-            long exp = node.get("exp").asLong();
-            return exp * 1000 <= System.currentTimeMillis();
-        } catch (Exception e) {
-            return true;
-        }
+        Claims claims = parseToken(token);
+        return claims.getExpiration().before(new Date());
     }
-
-    // 🔹 Hàm decode payload
-    private String decodePayload(String token) {
-        String[] parts = token.split("\\.");
-        if (parts.length != 3) throw new IllegalArgumentException("Invalid JWT");
-        return new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+    String username = extractUsername(token);
+    return username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+}
+    // 🔹 Giải mã token (trả về Claims)
+    private Claims parseToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid JWT: " + e.getMessage());
+        }
     }
 }

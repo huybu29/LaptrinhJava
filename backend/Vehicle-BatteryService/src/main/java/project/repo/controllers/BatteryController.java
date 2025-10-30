@@ -1,50 +1,76 @@
 package project.repo.controllers;
 
-import java.util.List;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import project.repo.dtos.BatteryDTO;
 import project.repo.service.BatteryService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/batteries")
 @RequiredArgsConstructor
 @Validated
-@CrossOrigin(origins = "http://localhost:5173")
 public class BatteryController {
-  private final BatteryService batteryService;
-  @GetMapping("")
-  public List<BatteryDTO> getAllBattery() {
-      return batteryService.getAllBattery();
-  };
-  @GetMapping("/{id}")
-  public BatteryDTO getBatteryById(@PathVariable Long id) {
-      return batteryService.getBatteryById(id);
-  }
-  @PutMapping("/{id}")
-  public BatteryDTO upBatteryDTO(@PathVariable String id, @RequestBody BatteryDTO dto) {
-      
-      return batteryService.updateBattery(dto);
-  }
-  @PostMapping("")
-  public BatteryDTO createBattery(@RequestBody BatteryDTO dto) {
-      return batteryService.createBattery(dto);
-  }
-  @DeleteMapping("/{id}")
-  public void deleteBattery(@PathVariable Long id) {
-      batteryService.deleteBattery(id);
-  }
+
+    private final BatteryService batteryService;
+
+    // 🔹 Helper kiểm tra quyền
+    private void checkRole(String roleHeader, String... allowedRoles) {
+        for (String role : allowedRoles) {
+            if (roleHeader != null && roleHeader.equalsIgnoreCase("ROLE_" + role)) {
+                return;
+            }
+        }
+        throw new RuntimeException("Access denied: required role " + String.join(", ", allowedRoles));
+    }
+
+    // 🔹 Lấy tất cả pin (STAFF, ADMIN)
+    @GetMapping
+    public List<BatteryDTO> getAllBatteries(@RequestHeader("X-User-Role") String role) {
+        checkRole(role, "STAFF", "ADMIN");
+        return batteryService.getAllBattery();
+    }
+
+    // 🔹 Lấy pin theo ID
+    @GetMapping("/{id}")
+    public BatteryDTO getBatteryById(
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id
+    ) {
+        checkRole(role, "CUSTOMER", "STAFF", "ADMIN");
+        return batteryService.getBatteryById(id);
+    }
+
+    // 🔹 Tạo pin
+    @PostMapping
+    public BatteryDTO createBattery(
+            @RequestHeader("X-User-Role") String role,
+            @RequestBody BatteryDTO dto
+    ) {
+        checkRole(role, "STAFF", "ADMIN");
+        return batteryService.createBattery(dto);
+    }
+
+    // 🔹 Cập nhật pin
+    @PutMapping("/{id}")
+    public BatteryDTO updateBattery(
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id,
+            @RequestBody BatteryDTO dto
+    ) {
+        checkRole(role, "STAFF", "ADMIN");
+        return batteryService.updateBattery(dto);
+    }
+
+    // 🔹 Xóa pin
+    @DeleteMapping("/{id}")
+    public void deleteBattery(
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long id
+    ) {
+        checkRole(role, "ADMIN");
+        batteryService.deleteBattery(id);
+    }
 }

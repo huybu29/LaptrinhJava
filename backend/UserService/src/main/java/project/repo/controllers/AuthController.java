@@ -11,10 +11,11 @@ import project.repo.dtos.AuthResponse;
 import project.repo.entity.User;
 import project.repo.repository.UserRepository;
 import project.repo.service.JwtService;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -33,7 +34,7 @@ public class AuthController {
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword())) // BCrypt
-                .role("ROLE_USER")
+                .role("ROLE_CUSTOMER")
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .fullName(request.getFullName())
@@ -54,7 +55,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("❌ Invalid credentials");
             }
 
-            String token = jwtService.generateToken(user.getUsername(), user.getRole());
+            String token = jwtService.generateToken(user);
             return ResponseEntity.ok(new AuthResponse(token));
 
         } catch (UsernameNotFoundException e) {

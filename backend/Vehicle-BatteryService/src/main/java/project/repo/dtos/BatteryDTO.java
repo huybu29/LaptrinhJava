@@ -7,7 +7,8 @@ import project.repo.entity.Battery.BatteryStatus;
 public class BatteryDTO {
   private Long id;
   private String batteryCode;
-  private BatteryStatus status;
+  private String status;
+  private Float capacityKwh;
   private float soh;
   private Long stationId; 
 }

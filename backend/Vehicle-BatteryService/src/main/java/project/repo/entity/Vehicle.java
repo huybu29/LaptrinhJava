@@ -1,7 +1,6 @@
 package project.repo.entity;
 import java.lang.annotation.Inherited;
-
-
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,12 +9,16 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "vehicles")
 public class Vehicle {
   @Id
   @GeneratedValue(strategy= GenerationType.IDENTITY)
-  public Long id;
-  public String vin;
-  public String batteryType;
-  public Long ownerId;
+  private Long id;
+  private String vin;
+ 
+  private String model;
+  private String batteryType;
+  private Long ownerId;
+  private LocalDateTime registeredAt;
   
 }

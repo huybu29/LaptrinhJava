@@ -42,10 +42,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) 
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DRIVER")
-                .requestMatchers("/api/vehicles/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DRIVER")
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) 
             .userDetailsService(userService); 
