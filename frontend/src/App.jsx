@@ -8,6 +8,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import CustomerDashboard from './pages/customer/CustomerDashBoard';
 import AdminAppointments from './pages/admin/AdBookingManagement';
 import AdminDashboard from './pages/admin/AdminPage';
+import AdminNotifications from './pages/admin/AdNotification';
 
 import AdminUsers from './pages/admin/AdUserManagement';
 import AdminVehicles from './pages/admin/AdVehicleManagement';
@@ -41,7 +42,7 @@ function App() {
           <Route path="/admin/stations" element={<AdminStations/>}/>
           <Route path="/admin/stations/:id" element={<AdminEditStation/>}/>
           <Route path="/admin/batteries" element={<AdminParts/>}/>
-          
+          <Route path="/admin/notification" element={<AdminNotifications/>}/>
         </Route>
       </Routes>
     </Router>

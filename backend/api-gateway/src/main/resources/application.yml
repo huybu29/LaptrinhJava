@@ -49,9 +49,12 @@ spring:
         - id: support-service
           uri: lb://support-service
           predicates:
-            - Path=/api/tickets/**
+            - Path=/api/tickets/**, /api/notifications/**
           filters:
-            - JwtAuthFilter             
+              - JwtAuthFilter
+
+
+             
 eureka:
   client:
     service-url:

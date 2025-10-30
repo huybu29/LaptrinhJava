@@ -54,6 +54,12 @@ const AdminDashboard = () => {
           >
             📊 Báo cáo & thống kê
           </Link>
+          <Link
+            to="/admin/notification"
+            className="p-3 rounded-xl hover:bg-blue-100 transition flex items-center gap-2 font-medium text-gray-700"
+          >
+            👤 Quản lý thông báo
+          </Link>
         </nav>
       </aside>
 
