@@ -8,7 +8,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import CustomerDashboard from './pages/customer/CustomerDashBoard';
 import AdminAppointments from './pages/admin/AdBookingManagement';
 import AdminDashboard from './pages/admin/AdminPage';
-
+import AdminBatteryPackages from './pages/admin/AdBatteryPackageManagement';
 import AdminUsers from './pages/admin/AdUserManagement';
 import AdminVehicles from './pages/admin/AdVehicleManagement';
 import AdminStations from './pages/admin/AdCenterManagement';
@@ -41,7 +41,7 @@ function App() {
           <Route path="/admin/stations" element={<AdminStations/>}/>
           <Route path="/admin/stations/:id" element={<AdminEditStation/>}/>
           <Route path="/admin/batteries" element={<AdminParts/>}/>
-          
+          <Route path="/admin/battery-packages" element={<AdminBatteryPackages/>}/>
         </Route>
       </Routes>
     </Router>
