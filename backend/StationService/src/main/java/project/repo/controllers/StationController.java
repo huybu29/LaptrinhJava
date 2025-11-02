@@ -37,7 +37,6 @@ public class StationController {
     public List<StationDTO> getAllStations(
             @RequestHeader("X-User-Role") String role
     ) {
-        
         return stationService.getAllStations()
                 .stream()
                 .map(stationMapper::toDTO)
@@ -127,5 +126,20 @@ public class StationController {
     @GetMapping("/test")
     public String test() {
         return "✅ Station Service is running!";
+    }
+
+    // ============================
+    // 🆕 Thêm mới: Tìm trạm gần nhất theo tọa độ GPS
+    // ============================
+    @GetMapping("/nearest")
+    public ResponseEntity<StationDTO> getNearestStation(
+            @RequestParam double lat,
+            @RequestParam double lon,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        checkRole(role, "ADMIN", "STAFF", "CUSTOMER");
+        return stationService.findNearestStation(lat, lon)
+                .map(station -> ResponseEntity.ok(stationMapper.toDTO(station)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }
