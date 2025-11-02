@@ -61,6 +61,8 @@ public class BatteryController {
             @RequestBody BatteryDTO dto
     ) {
         checkRole(role, "STAFF", "ADMIN");
+        // Đảm bảo ID trong DTO khớp với ID trong đường dẫn
+        dto.setId(id);
         return batteryService.updateBattery(dto);
     }
 
@@ -72,5 +74,15 @@ public class BatteryController {
     ) {
         checkRole(role, "ADMIN");
         batteryService.deleteBattery(id);
+    }
+
+    // 🔹 Lấy pin sẵn có tại trạm (CUSTOMER, STAFF, ADMIN)
+    @GetMapping("/station/{stationId}/available")
+    public List<BatteryDTO> getAvailableBatteriesAtStation(
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long stationId
+    ) {
+        checkRole(role, "CUSTOMER", "STAFF", "ADMIN");
+        return batteryService.getAvailableBatteriesAtStation(stationId);
     }
 }
