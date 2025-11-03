@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 import project.repo.dtos.PaymentDto;
 import project.repo.service.PaymentService;
-
+import project.repo.clients.BookingClient;
 import java.util.List;
 
 @RestController
@@ -15,7 +15,7 @@ import java.util.List;
 public class PaymentController {
 
     private final PaymentService paymentService;
-
+    private final BookingClient bookingClient;
     // 🔹 Helper kiểm tra role
     private void checkRole(String roleHeader, String... allowedRoles) {
         for (String role : allowedRoles) {
@@ -48,33 +48,73 @@ public class PaymentController {
             checkRole(role, "STAFF", "ADMIN");
         }
 
-        return paymentService.getPaymentByUserID(userID);
+        return paymentService.getPaymentByUserId(userID);
     }
 
     // 🔹 Tạo thanh toán (CUSTOMER, STAFF, ADMIN)
     @PostMapping("/")
     public PaymentDto createPayment(
             @RequestHeader("X-User-Role") String role,
+             @RequestHeader("X-User-Id") Long userId,
             @RequestBody PaymentDto dto) {
 
-        checkRole(role, "CUSTOMER", "STAFF", "ADMIN");
-        return paymentService.createPayment(dto);
+        checkRole(role, "CUSTOMER");
+        return paymentService.createPayment(userId, dto);
     }
      @GetMapping("/me")
-    public List<PaymentDto> geMytPayment(
+    public List<PaymentDto> getMyPayment(
             @RequestHeader("X-User-Role") String role,
             @RequestHeader("X-User-Id") Long currentUserId
            ) {
 
-        return paymentService.getPaymentByUserID(currentUserId);
+        return paymentService.getPaymentByUserId(currentUserId);
    }
    @PutMapping("/{paymentId}")
-    public PaymentDto updatePayment(
+public PaymentDto updatePayment(
+        @RequestHeader("X-User-Id") Long userId,
         @RequestHeader("X-User-Role") String role,
         @PathVariable Long paymentId,
         @RequestBody PaymentDto dto) {
 
-    checkRole(role, "STAFF", "ADMIN");
+   PaymentDto existing = paymentService.getById(paymentId);
+    if (existing == null) {
+        throw new RuntimeException("Payment không tồn tại.");
+    }
+
+
+    if ("COMPLETED".equalsIgnoreCase(existing.getStatus())) {
+        throw new IllegalStateException("Không thể chỉnh sửa Payment đã thanh toán.");
+    }
+
+  
+    if ("ROLE_CUSTOMER".equalsIgnoreCase(role)) {
+        if (!existing.getUserID().equals(userId)) {
+            throw new RuntimeException("Bạn không thể chỉnh sửa Payment của người khác.");
+        }
+    } 
+    
+    else if (!"ROLE_ADMIN".equalsIgnoreCase(role) && !"ROLE_STAFF".equalsIgnoreCase(role)) {
+        throw new RuntimeException("Không có quyền thực hiện thao tác này.");
+    }
+
+    if (dto.getAmount() != null && dto.getAmount() <= 0) {
+        throw new IllegalArgumentException("Số tiền phải lớn hơn 0.");
+    }
+
+    // ✅ Cho phép cập nhật
     return paymentService.updatePayment(paymentId, dto);
 }
+
+    
+    @DeleteMapping("/{paymentId}")
+    public void deletePayment(
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long paymentId) {
+
+        checkRole(role, "ADMIN");
+        paymentService.deletePayment(paymentId);
+    }
+   
 }
+
+

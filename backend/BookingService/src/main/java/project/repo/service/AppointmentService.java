@@ -23,7 +23,7 @@ public class AppointmentService {
     private final AppointmentMapper appointmentMapper;
     public AppointmentDTO create(AppointmentDTO dto) {
         Appointment appointment = appointmentMapper.toEntity(dto);
-
+        
        
 
         Appointment saved = appointmentRepository.save(appointment);
@@ -71,4 +71,9 @@ public class AppointmentService {
     public void delete(Long id) {
         appointmentRepository.deleteById(id);
     }
+    public boolean existsById(Long id) {
+    return appointmentRepository.existsById(id);
 }
+    
+}
+
