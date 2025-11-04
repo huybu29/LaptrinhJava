@@ -11,115 +11,112 @@ import project.repo.repository.BatterySwapLogRepository;
 import project.repo.repository.VehicleRepository;
 import project.repo.dtos.SwapRequest;
 import project.repo.dtos.BatterySwapResponse;
+import project.repo.mapper.BatterySwapMapper;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BatterySwapService {
-    
+
     private final BatteryRepository batteryRepository;
     private final VehicleRepository vehicleRepository;
     private final BatterySwapLogRepository batterySwapLogRepository;
-    
-    @Transactional
+    private final BatterySwapMapper batterySwapMapper; 
+    // 🔹 Thực hiện đổi pin
     public BatterySwapResponse swapBattery(SwapRequest request) {
-        // Kiểm tra xe tồn tại
+
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
-        
-        // Kiểm tra pin mới
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found"));
+
         Battery newBattery = batteryRepository.findById(request.getNewBatteryId())
-                .orElseThrow(() -> new RuntimeException("New battery not found"));
-        
-        // Ràng buộc: Pin mới phải có status = AVAILABLE
+                .orElseThrow(() -> new IllegalArgumentException("New battery not found"));
+
         if (newBattery.getStatus() != Battery.BatteryStatus.AVAILABLE) {
-            throw new RuntimeException("New battery is not available. Current status: " + newBattery.getStatus());
+            throw new IllegalStateException("New battery is not available. Current status: " + newBattery.getStatus());
         }
-        
-        // Ràng buộc: Pin mới phải thuộc trạm được chỉ định
+
         if (!newBattery.getStationId().equals(request.getStationId())) {
-            throw new RuntimeException("New battery does not belong to the specified station");
+            throw new IllegalStateException("New battery does not belong to the specified station");
         }
-        
-        // Tìm pin cũ đang sử dụng (nếu có)
+
         Battery oldBattery = null;
         if (request.getOldBatteryId() != null) {
             oldBattery = batteryRepository.findById(request.getOldBatteryId())
-                    .orElseThrow(() -> new RuntimeException("Old battery not found"));
-            
-            // Ràng buộc: Pin cũ phải đang gắn với xe này
-            if (!oldBattery.getVehicleId().equals(request.getVehicleId())) {
-                throw new RuntimeException("Old battery is not attached to this vehicle");
+                    .orElseThrow(() -> new IllegalArgumentException("Old battery not found"));
+
+            if (!request.getVehicleId().equals(oldBattery.getVehicleId())) {
+                throw new IllegalStateException("Old battery is not attached to this vehicle");
             }
-            
-            // Ràng buộc: Pin cũ phải có status = IN_USE
+
             if (oldBattery.getStatus() != Battery.BatteryStatus.IN_USE) {
-                throw new RuntimeException("Old battery is not in use");
+                throw new IllegalStateException("Old battery is not currently in use");
             }
         }
-        
-        // Thực hiện đổi pin
+
+        // 🔸 Cập nhật pin cũ
         if (oldBattery != null) {
-            // Cập nhật pin cũ: CHARGING và không gắn xe
             oldBattery.setStatus(Battery.BatteryStatus.CHARGING);
             oldBattery.setVehicleId(null);
             oldBattery.setLastUsedAt(LocalDateTime.now());
             batteryRepository.save(oldBattery);
         }
-        
-        // Cập nhật pin mới: IN_USE và gắn xe
+
+        // 🔸 Cập nhật pin mới
         newBattery.setStatus(Battery.BatteryStatus.IN_USE);
         newBattery.setVehicleId(request.getVehicleId());
-        newBattery.setStationId(null); // Pin đã ra khỏi trạm
+        newBattery.setStationId(null);
         newBattery.setLastUsedAt(LocalDateTime.now());
-        newBattery.incrementChargeCycle(); // Tăng chu kỳ sạc
+        newBattery.incrementChargeCycle();
         batteryRepository.save(newBattery);
-        
-        // Ghi log đổi pin
+
+        // 🔸 Cập nhật xe
+        vehicle.setCurrentBatteryId(newBattery.getId()); // đảm bảo Vehicle có field này
+        vehicleRepository.save(vehicle);
+
+        // 🔸 Lưu log đổi pin
         BatterySwapLog log = BatterySwapLog.builder()
                 .vehicleId(request.getVehicleId())
-                .oldBatteryId(request.getOldBatteryId())
-                .newBatteryId(request.getNewBatteryId())
+                .oldBatteryId(oldBattery != null ? oldBattery.getId() : null)
+                .newBatteryId(newBattery.getId())
                 .stationId(request.getStationId())
                 .swapTime(LocalDateTime.now())
+                .staffId(request.getStaffId())
                 .notes(request.getNotes())
                 .build();
         batterySwapLogRepository.save(log);
-        
-        return BatterySwapResponse.builder()
-                .success(true)
-                .message("Battery swapped successfully")
-                .oldBatteryId(oldBattery != null ? oldBattery.getId() : null)
-                .newBatteryId(newBattery.getId())
-                .swapTime(LocalDateTime.now())
-                .build();
+
+        // 🔸 Trả về kết quả qua mapper
+        return batterySwapMapper.toResponse(log);
     }
-    
-    // Kiểm tra xe có thể đổi pin không
+
+    // 🔹 Kiểm tra khả năng đổi pin
     public boolean canSwapBattery(Long vehicleId, Long newBatteryId) {
-        try {
-            Battery newBattery = batteryRepository.findById(newBatteryId)
-                    .orElseThrow(() -> new RuntimeException("Battery not found"));
-            
-            // Kiểm tra pin mới có sẵn sàng sử dụng không
-            if (!newBattery.isAvailableForUse()) {
-                return false;
-            }
-            
-            // Kiểm tra xe không có pin nào khác đang IN_USE
-            long inUseBatteries = batteryRepository.countByVehicleIdAndStatus(
-                    vehicleId, Battery.BatteryStatus.IN_USE);
-            
-            return inUseBatteries == 0;
-            
-        } catch (Exception e) {
-            return false;
-        }
+        Battery newBattery = batteryRepository.findById(newBatteryId)
+                .orElseThrow(() -> new IllegalArgumentException("Battery not found"));
+
+        if (!newBattery.isAvailableForUse()) return false;
+
+        long inUseCount = batteryRepository.countByVehicleIdAndStatus(
+                vehicleId, Battery.BatteryStatus.IN_USE);
+
+        return inUseCount == 0;
     }
-    
-    // Lấy pin đang sử dụng của xe
+
+    // 🔹 Lấy pin hiện tại của xe
     public Battery getCurrentBattery(Long vehicleId) {
         return batteryRepository.findByVehicleIdAndStatus(vehicleId, Battery.BatteryStatus.IN_USE)
                 .orElse(null);
+    }
+
+    // 🔹 Lịch sử đổi pin
+    public List<BatterySwapResponse> getSwapHistoryByVehicle(Long vehicleId) {
+        List<BatterySwapLog> logs = batterySwapLogRepository.findByVehicleId(vehicleId);
+        return logs.stream()
+                .map(batterySwapMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }

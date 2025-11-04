@@ -8,4 +8,5 @@ import java.util.List;
 public interface BatterySwapLogRepository extends JpaRepository<BatterySwapLog, Long> {
     List<BatterySwapLog> findByVehicleIdOrderBySwapTimeDesc(Long vehicleId);
     List<BatterySwapLog> findByStationIdOrderBySwapTimeDesc(Long stationId);
+    List<BatterySwapLog> findByVehicleId(Long vehicleId);
 }

@@ -9,6 +9,6 @@ import project.repo.entity.Battery;
 public interface BatteryMapper {
     BatteryDTO toDTO(Battery battery);
     
-    @Mapping(target = "status", expression = "java(dto.getStatus() == null ? null : project.repo.entity.Battery.BatteryStatus.valueOf(dto.getStatus()))")
+    
     Battery toBattery(BatteryDTO dto);
 }

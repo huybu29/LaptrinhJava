@@ -9,6 +9,7 @@ public class SwapRequest {
     private Long vehicleId;
     private Long stationId;
     private Long newBatteryId;
-    private Long oldBatteryId; // có thể null nếu xe chưa có pin
+    private Long oldBatteryId; 
+    private Long staffId;
     private String notes;
 }

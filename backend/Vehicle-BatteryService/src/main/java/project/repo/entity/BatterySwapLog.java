@@ -23,7 +23,7 @@ public class BatterySwapLog {
     private Long oldBatteryId;
     private Long newBatteryId;
     private Long stationId;
-    
+    private Long staffId;
     private LocalDateTime swapTime;
     
     private String notes;
