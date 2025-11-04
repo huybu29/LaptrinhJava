@@ -11,7 +11,6 @@ public class TicketDTO {
     private String subject;
     private String description;
     private String status; // OPEN, IN_PROGRESS, RESOLVED, CLOSED
-    private Long resolvedBy;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
 }

@@ -46,12 +46,24 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
-        ticket.setStatus(TicketStatus.valueOf(status.toUpperCase()));
+        TicketStatus newStatus = TicketStatus.valueOf(status.toUpperCase());
+        if (!isValidTransition(ticket.getStatus(), newStatus)) {
+            throw new IllegalStateException("Invalid status transition: "
+                    + ticket.getStatus() + " -> " + newStatus);
+        }
+        
         Ticket updated = ticketRepository.save(ticket);
-
+        
         return ticketMapper.toDto(updated);
     }
-
+    private boolean isValidTransition(TicketStatus current, TicketStatus next) {
+    return switch (current) {
+        case OPEN -> next == TicketStatus.IN_PROGRESS;
+        case IN_PROGRESS -> next == TicketStatus.RESOLVED || next == TicketStatus.CLOSED;
+        case RESOLVED -> next == TicketStatus.CLOSED;
+        case CLOSED -> false; // không thể mở lại
+    };
+}
     // ✅ Xóa ticket theo ID
     public void deleteTicket(Long id) {
         if (!ticketRepository.existsById(id)) {
