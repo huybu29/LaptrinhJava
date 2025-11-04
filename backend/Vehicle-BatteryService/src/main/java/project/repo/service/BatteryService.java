@@ -32,4 +32,7 @@ public class BatteryService {
   public void deleteBattery(Long id){
     batteryRepository.deleteById(id);
   };
+  public Long countAvailableBatteriesAtStation(Long stationId) {
+    return batteryRepository.findByStationIdAndStatus(stationId, "FULL").stream().count();
+}
 }

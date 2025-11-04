@@ -73,4 +73,8 @@ public class BatteryController {
         checkRole(role, "ADMIN");
         batteryService.deleteBattery(id);
     }
+    @GetMapping("/station/{stationId}/available/count")
+    public Long countAvailableBatteriesAtStation(@PathVariable Long stationId) {
+    return batteryService.countAvailableBatteriesAtStation(stationId);
+}
 }
