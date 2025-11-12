@@ -39,7 +39,7 @@ public class Appointment {
  
     private Long vehicleId;
 
-    private Long serviceCenterId;
+    private Long stationId;
         
     public enum AppointmentStatus {
         PENDING,        // Chờ xử lý
@@ -48,6 +48,7 @@ public class Appointment {
         COMPLETED,      // Hoàn tất
         CANCELED        // Đã hủy
     }
-    
+    public LocalDateTime createdAt;
+    public LocalDateTime updatedAt;
 
 }

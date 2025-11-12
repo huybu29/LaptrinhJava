@@ -25,5 +25,7 @@ public class AppointmentDTO {
 
     private Long customerId;        // ID khách hàng (từ CustomerService)
     private Long vehicleId;         // ID xe (từ VehicleService)
-    private Long serviceCenterId;   // ID trung tâm dịch vụ (từ 
+    private Long stationId;   // ID trung tâm dịch vụ (từ 
+    public LocalDateTime createdAt;
+    public LocalDateTime updatedAt;
 }

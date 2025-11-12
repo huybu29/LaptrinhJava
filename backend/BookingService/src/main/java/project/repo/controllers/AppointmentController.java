@@ -3,6 +3,7 @@ package project.repo.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import project.repo.dtos.AppointmentDTO;
+import project.repo.entity.Appointment;
 import project.repo.service.AppointmentService;
 
 import java.util.List;
@@ -118,7 +119,9 @@ public class AppointmentController {
 
         dto.setId(id);
         dto.setCustomerId(existing.getCustomerId()); // giữ nguyên customerId
-        return appointmentService.updateAppointment(dto);
+        Appointment.AppointmentStatus statusEnum =
+            Appointment.AppointmentStatus.valueOf(dto.getStatus().toUpperCase());
+        return appointmentService.updateStatus(id, statusEnum);
     }
 
     // 🔹 8. Xóa cuộc hẹn (chỉ ADMIN)
