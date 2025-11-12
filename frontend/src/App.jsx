@@ -10,6 +10,7 @@ import AdminAppointments from './pages/admin/AdBookingManagement';
 import AdminDashboard from './pages/admin/AdminPage';
 import AdminNotifications from './pages/admin/AdNotification';
 import AdminBatteryPackages from './pages/admin/AdBatteryPackageManagement';
+
 import AdminUsers from './pages/admin/AdUserManagement';
 import AdminVehicles from './pages/admin/AdVehicleManagement';
 import AdminStations from './pages/admin/AdCenterManagement';
@@ -20,6 +21,15 @@ import BookingPage from './pages/customer/CustomerBooking';
 import PaymentPage from './pages/customer/CustomerPayment';
 import AdminTickets from './pages/admin/AdTicketManagement';
 import CustomerTicketPage from './pages/customer/CustomerSupport';
+
+
+//Staff
+import StaffPage from "./pages/staff/StaffPage";
+import StaffBatteryManagement from "./pages/staff/StaffBatteryManagement";
+import StaffBookingManagement from "./pages/staff/StaffBookingManagement";
+import StaffTicketManagement from "./pages/staff/StaffTicketManagement";
+import StaffVehicleManagement from "./pages/staff/StaffVehicleManagement";
+
 import UserLocation from "./components/UserLocation";
 
 function App() {
@@ -46,6 +56,13 @@ function App() {
           <Route path="/admin/batteries" element={<AdminParts/>}/>
           <Route path="/admin/notification" element={<AdminNotifications/>}/>
         </Route>
+          {/* Staff */}
+          <Route path="/staff" element={<StaffPage />}>
+            <Route path="batteries" element={<StaffBatteryManagement />} />
+            <Route path="bookings" element={<StaffBookingManagement />} />
+            <Route path="tickets" element={<StaffTicketManagement />} />
+            <Route path="vehicles" element={<StaffVehicleManagement />} />
+          </Route>
       </Routes>
     </Router>
   </AuthProvider>
