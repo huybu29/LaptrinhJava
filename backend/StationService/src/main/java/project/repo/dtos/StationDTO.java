@@ -1,7 +1,8 @@
 package project.repo.dtos;
 
 import lombok.Data;
-
+import project.repo.dtos.StationDTO;
+import project.repo.entity.Station;
 @Data
 public class StationDTO {
     private Long id;

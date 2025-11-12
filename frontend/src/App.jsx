@@ -20,6 +20,8 @@ import BookingPage from './pages/customer/CustomerBooking';
 import PaymentPage from './pages/customer/CustomerPayment';
 import AdminTickets from './pages/admin/AdTicketManagement';
 import CustomerTicketPage from './pages/customer/CustomerSupport';
+import UserLocation from "./components/UserLocation";
+
 function App() {
   return (
   <AuthProvider>
