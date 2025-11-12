@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import project.repo.dtos.VehicleDTO;
@@ -12,7 +11,6 @@ import project.repo.mapper.VehicleMapper;
 import project.repo.repository.VehicleRepository;
 
 @Service
-@RestController
 @RequiredArgsConstructor
 public class VehicleService {
   private final VehicleRepository vehicleRepository;

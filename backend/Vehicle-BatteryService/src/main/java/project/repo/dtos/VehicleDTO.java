@@ -15,5 +15,6 @@ public class VehicleDTO {
   private String vin;
   private String batteryType;
   private Long ownerId;
+  private Long currentBatteryId;
   private LocalDateTime registeredAt;
 } 

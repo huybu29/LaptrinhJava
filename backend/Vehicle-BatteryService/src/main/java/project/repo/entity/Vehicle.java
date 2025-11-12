@@ -18,6 +18,7 @@ public class Vehicle {
  
   private String model;
   private String batteryType;
+  private Long currentBatteryId;
   private Long ownerId;
   private LocalDateTime registeredAt;
   
