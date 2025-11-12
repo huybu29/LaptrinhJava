@@ -13,7 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.lang.Integer;
 @Entity
 @Builder
 @AllArgsConstructor
@@ -22,12 +22,12 @@ import lombok.NoArgsConstructor;
 public class Payment {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  
   private Long paymentID;
   
   private Long userID;
   private Long bookingID;
-  private int amount;
+  private String invoiceNumber;
+  private Integer amount;
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
   @Enumerated(EnumType.STRING)

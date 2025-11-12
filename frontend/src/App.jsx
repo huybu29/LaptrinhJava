@@ -9,7 +9,7 @@ import CustomerDashboard from './pages/customer/CustomerDashBoard';
 import AdminAppointments from './pages/admin/AdBookingManagement';
 import AdminDashboard from './pages/admin/AdminPage';
 import AdminNotifications from './pages/admin/AdNotification';
-
+import AdminBatteryPackages from './pages/admin/AdBatteryPackageManagement';
 import AdminUsers from './pages/admin/AdUserManagement';
 import AdminVehicles from './pages/admin/AdVehicleManagement';
 import AdminStations from './pages/admin/AdCenterManagement';

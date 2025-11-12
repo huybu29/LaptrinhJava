@@ -1,19 +1,65 @@
 server:
   port: 8084
+
 spring:
   application:
     name: payment-service
+
   config:
     import: "optional:configserver:http://localhost:8888"
 
+  datasource:
+    url: jdbc:mysql://localhost:3306/payment_db?useSSL=false&serverTimezone=UTC
+    username: root
+    password: yourpassword
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
-    
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+
   instance:
-    hostname: payment-service        
-    prefer-ip-address: true 
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      bookingServiceCircuit:
+        register-health-indicator: true
+        failure-rate-threshold: 50
+        sliding-window-size: 5
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+        automatic-transition-from-open-to-half-open-enabled: true
+
+
+feign:
+  circuitbreaker:
+    enabled: true
+  httpclient:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.openfeign: DEBUG
+    io.github.resilience4j.circuitbreaker: INFO

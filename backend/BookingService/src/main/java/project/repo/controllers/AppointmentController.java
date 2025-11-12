@@ -133,5 +133,11 @@ public class AppointmentController {
         checkRole(role, "ADMIN");
         appointmentService.delete(id);
     }
+    @GetMapping("/{id}/exists")
+    public boolean existsById(@PathVariable Long id) {
+    return appointmentService.existsById(id);
+    
+}
+   
 }
 

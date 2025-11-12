@@ -49,6 +49,12 @@ const AdminDashboard = () => {
             Quản lý support ticket
           </Link>
           <Link
+            to="/admin/battery-packages"
+            className="p-3 rounded-xl hover:bg-purple-100 transition flex items-center gap-2 font-medium text-gray-700"
+          >
+            Quản lý gói thuê
+          </Link>
+          <Link
             to="/admin/reports"
             className="p-3 rounded-xl hover:bg-red-100 transition flex items-center gap-2 font-medium text-gray-700"
           >
