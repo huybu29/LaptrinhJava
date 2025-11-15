@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
+
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -31,117 +32,131 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 flex items-center justify-center">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 tracking-tight">
-          Tạo tài khoản mới
-        </h2>
+    <div className="min-h-screen flex">
+      {/* Left side - Register Form */}
+      <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-900">
+        <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
+          <h2 className="text-3xl font-bold text-center text-white mb-6">
+            Tạo tài khoản mới
+          </h2>
 
-        <form onSubmit={handleRegister} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tên đăng nhập
-            </label>
-            <input
-              type="text"
-              name="username"
-              placeholder="Nhập tên đăng nhập..."
-              value={form.username}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none transition"
-              required
-            />
-          </div>
+          <form onSubmit={handleRegister} className="space-y-5">
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Tên đăng nhập
+              </label>
+              <input
+                type="text"
+                name="username"
+                placeholder="Nhập tên đăng nhập"
+                value={form.username}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mật khẩu
-            </label>
-            <input
-              type="password"
-              name="password"
-              placeholder="Nhập mật khẩu..."
-              value={form.password}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none transition"
-              required
-            />
-          </div>
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Mật khẩu
+              </label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Nhập mật khẩu"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Họ và tên
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Nhập họ và tên..."
-              value={form.fullName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none transition"
-              required
-            />
-          </div>
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Họ và tên
+              </label>
+              <input
+                type="text"
+                name="fullName"
+                placeholder="Nhập họ và tên"
+                value={form.fullName}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="Nhập email..."
-              value={form.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none transition"
-            />
-          </div>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Nhập email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Số điện thoại
-            </label>
-            <input
-              type="text"
-              name="phone"
-              placeholder="Nhập số điện thoại..."
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none transition"
-            />
-          </div>
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Số điện thoại
+              </label>
+              <input
+                type="text"
+                name="phone"
+                placeholder="Nhập số điện thoại"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              />
+            </div>
 
-          {message && (
-            <p
-              className={`text-sm text-center py-2 rounded ${
-                message.includes("✅")
-                  ? "text-green-600 bg-green-50"
-                  : "text-red-500 bg-red-50"
-              }`}
+            {/* Message */}
+            {message && (
+              <p
+                className={`text-sm text-center py-2 rounded ${
+                  message.includes("✅")
+                    ? "text-green-400 bg-green-900/20"
+                    : "text-red-400 bg-red-900/20"
+                }`}
+              >
+                {message}
+              </p>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition duration-200"
             >
-              {message}
-            </p>
-          )}
+              Đăng ký
+            </button>
+          </form>
 
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-gray-900 text-white rounded-lg font-semibold tracking-wide hover:bg-gray-700 transition"
-          >
-            Đăng ký
-          </button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>
+          {/* Login Link */}
+          <div className="mt-6 text-center text-sm text-gray-400">
             Đã có tài khoản?{" "}
             <a
               href="/login"
-              className="text-gray-900 font-medium hover:underline"
+              className="text-blue-400 font-medium hover:underline"
             >
               Đăng nhập ngay
             </a>
-          </p>
+          </div>
         </div>
+      </div>
+
+      {/* Right side - Illustration */}
+      <div className="hidden md:flex w-1/2 bg-white items-center justify-center">
+        
       </div>
     </div>
   );

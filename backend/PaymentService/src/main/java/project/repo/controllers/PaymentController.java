@@ -34,21 +34,28 @@ public class PaymentController {
     }
 
     // 🔹 Lấy thanh toán theo userID (CUSTOMER chỉ được xem thanh toán của mình, STAFF/ADMIN xem tất cả)
-    @GetMapping("/{userID}")
-    public List<PaymentDto> getPaymentByUserID(
+    @GetMapping("/{paymentId}")
+    public PaymentDto getPaymentById(
             @RequestHeader("X-User-Role") String role,
             @RequestHeader("X-User-Id") Long currentUserId,
-            @PathVariable Long userID) {
+            @PathVariable Long paymentId) {
 
-        if ("ROLE_CUSTOMER".equalsIgnoreCase(role)) {
-            if (!currentUserId.equals(userID)) {
-                throw new RuntimeException("Access denied: CUSTOMER can only view their own payments");
-            }
-        } else {
-            checkRole(role, "STAFF", "ADMIN");
+        PaymentDto payment = paymentService.getById(paymentId);
+        if (payment == null) {
+            throw new RuntimeException("Payment with ID " + paymentId + " not found.");
         }
 
-        return paymentService.getPaymentByUserId(userID);
+        if ("ROLE_CUSTOMER".equalsIgnoreCase(role)) {
+            // Customer chỉ được xem thanh toán của chính mình
+            if (!payment.getUserID().equals(currentUserId)) {
+                throw new RuntimeException("Access denied: You do not have permission to view this payment.");
+            }
+            return payment;
+        }
+
+        // Admin và Staff có thể xem bất kỳ thanh toán nào
+        checkRole(role, "STAFF", "ADMIN");
+        return payment;
     }
 
     // 🔹 Tạo thanh toán (CUSTOMER, STAFF, ADMIN)

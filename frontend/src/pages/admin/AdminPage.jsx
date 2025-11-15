@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
 
-const AdminDashboard = () => {
+const AdminPage = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
@@ -93,4 +93,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminPage;

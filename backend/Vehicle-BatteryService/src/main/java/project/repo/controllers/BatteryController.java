@@ -85,4 +85,17 @@ public class BatteryController {
         checkRole(role, "CUSTOMER", "STAFF", "ADMIN");
         return batteryService.getAvailableBatteriesAtStation(stationId);
     }
+    @GetMapping("/vehicle/{vehicleId}")
+    public BatteryDTO getBatteryByVehicleId(@PathVariable Long vehicleId) {
+        BatteryDTO battery = batteryService.getBatteryByVehicleId(vehicleId);
+
+        if (battery == null) {
+            throw new RuntimeException("Battery not found for vehicle ID: " + vehicleId);
+        }
+        return battery;
+    }
+    @GetMapping("/station/{stationId}/available/count")
+    public Long countAvailableBatteriesAtStation(@PathVariable Long stationId) {
+    return batteryService.countAvailableBatteriesAtStation(stationId);
+}
 }

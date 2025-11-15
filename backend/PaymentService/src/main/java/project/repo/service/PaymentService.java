@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import project.repo.repository.PaymentRepository;
@@ -21,9 +20,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
-
-    @Autowired
-    private BookingClient bookingClient;
+    private final BookingClient bookingClient;
 
     public List<PaymentDto> getAllPayments() {
         return paymentRepository.findAll()
@@ -39,7 +36,6 @@ public class PaymentService {
             throw new IllegalArgumentException("❌ Thiếu thông tin bookingId.");
         }
 
-
         AppointmentDTO booking = bookingClient.getAppointmentById(bookingId);
         if (booking == null) {
             throw new IllegalArgumentException("❌ Booking không tồn tại.");
@@ -48,27 +44,25 @@ public class PaymentService {
             throw new SecurityException("❌ Bạn không thể thanh toán cho booking của người khác.");
         }
 
-      
         if (!"COMPLETED".equalsIgnoreCase(booking.getStatus())) {
             throw new IllegalArgumentException("❌ Chỉ có thể thanh toán khi Booking đã COMPLETED.");
         }
 
-        if (paymentRepository.existsById(bookingId)) {
+        if (paymentRepository.existsByBookingID(bookingId)) {
             throw new IllegalArgumentException("❌ Booking này đã có payment record.");
         }
 
- 
         if (dto.getAmount() == null || dto.getAmount() <= 0) {
             throw new IllegalArgumentException("❌ Số tiền thanh toán phải lớn hơn 0.");
         }
 
-     
         Payment payment = paymentMapper.toEntity(dto);
         payment.setUserID(userId);
         payment.setBookingID(bookingId);
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
         payment.setStatus(Payment.PaymentStatus.PENDING);
+        payment.setInvoiceNumber(generateInvoiceNumber(bookingId));
 
         Payment saved = paymentRepository.save(payment);
         return paymentMapper.toDto(saved);
@@ -88,17 +82,14 @@ public class PaymentService {
                 .collect(Collectors.toList());
     }
 
-   
+    
     public PaymentDto updatePayment(Long paymentID, PaymentDto dto) {
         Payment existing = paymentRepository.findById(paymentID)
                 .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentID));
 
-        if (existing.getStatus() == Payment.PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("Không thể chỉnh sửa Payment đã COMPLETED.");
+        if (existing.getStatus() != Payment.PaymentStatus.PENDING) {
+            throw new IllegalStateException("Không thể chỉnh sửa Payment đã ở trạng thái " + existing.getStatus());
         }
-
-        if (dto.getAmount() != null && dto.getAmount() > 0)
-            existing.setAmount(dto.getAmount());
 
         if (dto.getMethod() != null)
             existing.setMethod(Payment.PaymentMethod.valueOf(dto.getMethod().toUpperCase()));
@@ -112,7 +103,7 @@ public class PaymentService {
         return paymentMapper.toDto(updated);
     }
 
-   
+    
     public void deletePayment(Long paymentId) {
         Payment existing = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentId));
@@ -124,8 +115,8 @@ public class PaymentService {
         paymentRepository.delete(existing);
     }
 
-    private String generateInvoiceNumber(Long appointmentId) {
-        return String.format("INV-%d-%s", appointmentId, LocalDateTime.now().toLocalDate());
+    private String generateInvoiceNumber(Long bookingId) {
+        return String.format("INV-%d-%s", bookingId, System.currentTimeMillis());
     }
 
     private String generateInvoiceDetails(Payment payment) {

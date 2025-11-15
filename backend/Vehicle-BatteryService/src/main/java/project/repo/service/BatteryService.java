@@ -78,4 +78,13 @@ public class BatteryService {
                 .map(batteryMapper::toDTO)
                 .collect(Collectors.toList());
     }
+    public BatteryDTO getBatteryByVehicleId(Long vehicleId) {
+    return batteryRepository.findByVehicleId(vehicleId)
+            .map(batteryMapper::toDTO)
+            .orElse(null);
+}
+      public Long countAvailableBatteriesAtStation(Long stationId) {
+    
+    return batteryRepository.findByStationIdAndStatus(stationId, Battery.BatteryStatus.AVAILABLE).stream().count();
+}
 }

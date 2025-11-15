@@ -31,4 +31,5 @@ public interface BatteryRepository extends JpaRepository<Battery, Long> {
    
     List<Battery> findByChargeCyclesGreaterThanEqual(Integer maxChargeCycles);
   List<Battery> findByStationIdAndStatus(Long stationId, String status);
+  Optional<Battery> findByVehicleId(Long vehicleId);
 }

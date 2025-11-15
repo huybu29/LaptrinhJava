@@ -79,7 +79,7 @@ public class VehicleController {
 
     // 🔹 Lấy xe của chính mình (CUSTOMER, STAFF, ADMIN)
     @GetMapping("/me")
-    public List<VehicleDTO> getMyVehicles(
+    public VehicleDTO getMyVehicles(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String role
     ) {

@@ -1,68 +1,114 @@
-import React from "react";
-import { Link, Outlet } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaBatteryFull,
+  FaExchangeAlt,
+  FaSignOutAlt, // 1. Import icon đăng xuất
+} from "react-icons/fa";
+import { AuthContext } from "../../services/AuthContext"; // 2. Import AuthContext
 
-const StaffPage = () => {
+// Component Link cho Sidebar (để xử lý active link)
+const SidebarLink = ({ to, icon, label }) => {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 p-3 rounded-lg font-medium transition-colors ${
+          isActive
+            ? "bg-blue-600 text-white"
+            : "text-gray-300 hover:bg-gray-800 hover:text-white"
+        }`
+      }
+    >
+      {icon}
+      {label}
+    </NavLink>
+  );
+};
+
+// 3. Component Button mới cho Đăng xuất
+const SidebarButton = ({ icon, label, onClick, danger }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-3 p-3 rounded-lg font-medium transition-colors w-full ${
+        danger
+          ? "text-red-400 hover:bg-red-900/50" // Thêm style 'danger'
+          : "text-gray-300 hover:bg-gray-800 hover:text-white"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+};
+
+const StaffLayout = () => {
+  // 4. Lấy hàm logout và navigate
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login"); // Chuyển về trang đăng nhập
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-950 text-gray-100 font-inter">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg p-6 flex flex-col">
-        <h2 className="text-2xl font-bold text-gray-800 mb-8">
-          🔋 Staff Panel
-        </h2>
+      {/* 5. Thêm 'justify-between' để đẩy nút Đăng xuất xuống dưới */}
+      <aside className="w-64 bg-gray-900 p-6 flex flex-col shadow-lg justify-between">
+        {/* 6. Bọc phần logo và nav vào 1 div */}
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">
+            🔋 BSS Staff
+          </h2>
 
-        <nav className="flex flex-col gap-3">
-          <Link
-            to="/staff/dashboard"
-            className="p-3 rounded-xl hover:bg-blue-100 transition flex items-center gap-2 font-medium text-gray-700"
-          >
-            🏠 Trang tổng quan
-          </Link>
+          <nav className="flex flex-col gap-3">
+            <SidebarLink
+              to="/staff/dashboard"
+              icon={<FaTachometerAlt />}
+              label="Tổng quan"
+            />
+            <SidebarLink
+              to="/staff/inventory"
+              icon={<FaBatteryFull />}
+              label="Quản lý Tồn kho"
+            />
+            <SidebarLink
+              to="/staff/transactions"
+              icon={<FaExchangeAlt />}
+              label="Xử lý Giao dịch"
+            />
+          </nav>
+        </div>
 
-          <Link
-            to="/staff/batteries"
-            className="p-3 rounded-xl hover:bg-green-100 transition flex items-center gap-2 font-medium text-gray-700"
-          >
-            🔋 Quản lý pin
-          </Link>
-
-          <Link
-            to="/staff/bookings"
-            className="p-3 rounded-xl hover:bg-yellow-100 transition flex items-center gap-2 font-medium text-gray-700"
-          >
-            📅 Giao dịch đổi pin
-          </Link>
-
-          <Link
-            to="/staff/vehicles"
-            className="p-3 rounded-xl hover:bg-blue-100 transition flex items-center gap-2 font-medium text-gray-700"
-          >
-            🚗 Quản lý phương tiện
-          </Link>
-
-          <Link
-            to="/staff/tickets"
-            className="p-3 rounded-xl hover:bg-purple-100 transition flex items-center gap-2 font-medium text-gray-700"
-          >
-            🎫 Hỗ trợ & sự cố
-          </Link>
-        </nav>
+        {/* 7. Thêm nút Đăng xuất */}
+        <div>
+          <SidebarButton
+            icon={<FaSignOutAlt />}
+            label="Đăng xuất"
+            danger
+            onClick={handleLogout}
+          />
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8">
+      {/* Main Content (Giữ nguyên) */}
+      <main className="flex-1 p-8 overflow-y-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Xin chào, Nhân viên trạm 👋
           </h1>
-          <p className="text-gray-600">
-            Bảng điều khiển trạm đổi pin xe điện – quản lý pin, xe, và giao dịch.
+          <p className="text-gray-400">
+            Hệ thống quản lý vận hành trạm đổi pin.
           </p>
         </div>
 
         {/* Main Panel */}
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          {/* Outlet để hiển thị các trang con như /staff/batteries, /staff/bookings,... */}
+        <div className="bg-gray-900 p-6 rounded-xl shadow-md border border-gray-800">
           <Outlet />
         </div>
       </main>
@@ -70,4 +116,4 @@ const StaffPage = () => {
   );
 };
 
-export default StaffPage;
+export default StaffLayout;

@@ -1,159 +1,162 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import {
+  IoWalletOutline,
+  IoCalendarClearOutline,
+  IoFlashOutline,
+  IoCheckmarkCircle,
+} from "react-icons/io5"; // Thêm icon
+import { MdPlace } from "react-icons/md";
 
-const PaymentPage = () => {
-  const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
-  const [note, setNote] = useState("");
-  const userId = localStorage.getItem("userId");
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount);
+};
 
-  // 🔹 Lấy danh sách payment của user
-  const fetchPayments = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get(`/payments/me`);
-      console.log(res.data)
-      const pending = res.data.filter((p) => p.status === "PENDING");
-      setPayments(pending);
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách payment:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPayments();
-  }, []);
-
-  // 🔹 Mở form thanh toán
-  const openPaymentForm = (payment) => {
-    setSelectedPayment(payment);
-    setPaymentMethod("CASH");
-    setNote("");
-  };
-
-  // 🔹 Xử lý xác nhận thanh toán
-  const confirmPayment = async () => {
-    if (!selectedPayment) return;
-    if (!window.confirm(`Xác nhận thanh toán đơn #${selectedPayment.paymentID}?`)) return;
-
-    try {
-      await api.put(
-        `/payments/${selectedPayment.paymentID}`,
-        { status: "COMPLETED", method: paymentMethod, note }
-      );
-
-      alert("✅ Thanh toán thành công!");
-      setSelectedPayment(null);
-      fetchPayments();
-    } catch (err) {
-      console.error("Lỗi khi thanh toán:", err);
-      alert("❌ Thanh toán thất bại");
-    }
-  };
+// === TÁCH RA COMPONENT ITEM ĐỂ DỄ QUẢN LÝ ===
+const PaymentItem = ({ payment, isPending = false }) => {
+  const navigate = useNavigate();
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-grey mb-6">💳 Thanh toán dịch vụ</h1>
+    <div
+      className={`bg-gray-800 p-5 rounded-lg shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border ${
+        isPending ? "border-yellow-600" : "border-gray-700"
+      }`}
+    >
+      {/* Thông tin */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-xl font-semibold">
+          <IoFlashOutline className={isPending ? "text-yellow-400" : "text-blue-400"} />
+          <span>{payment.stationName || "Trạm đổi pin"}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-300">
+          <MdPlace />
+          <span>{payment.stationAddress || "Không rõ địa chỉ"}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-400 text-sm">
+          <IoCalendarClearOutline />
+          <span>
+            Ngày: {new Date(payment.appointmentDate || payment.createdAt).toLocaleString("vi-VN")}
+          </span>
+        </div>
+      </div>
 
-      {loading ? (
-        <p>Đang tải dữ liệu...</p>
-      ) : payments.length === 0 ? (
-        <p>Không có thanh toán nào cần xử lý.</p>
+      {/* Nút bấm hoặc Trạng thái */}
+      <div className="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+        <span className="text-2xl font-bold text-green-400">
+          {formatCurrency(payment.amount || 0)}
+        </span>
+
+        {isPending ? (
+          <button
+            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-md"
+            // Sửa route: dùng /payment/ thay vì /driver/payment/
+            onClick={() => navigate(`/payment/${payment.paymentID}`)}
+          >
+            Thanh toán
+          </button>
+        ) : (
+          <span className="flex items-center gap-2 px-4 py-2 bg-green-800 text-green-300 font-medium rounded-lg">
+            <IoCheckmarkCircle />
+            Đã hoàn thành
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// === COMPONENT TRANG CHÍNH ===
+const PaymentPage = () => {
+  const [pendingPayments, setPendingPayments] = useState([]);
+  const [completedPayments, setCompletedPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMyPayments = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/payments/me");
+        
+        // Lọc ra 2 danh sách
+        const allPayments = res.data;
+        const pending = allPayments.filter(p => p.status === "PENDING" || p.status === "UNPAID");
+        const completed = allPayments.filter(p => p.status === "COMPLETED");
+
+        setPendingPayments(pending);
+        setCompletedPayments(completed);
+
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu thanh toán:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMyPayments();
+  }, []); // Bỏ 'navigate' khỏi dependency vì nó không thay đổi
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-300 bg-gray-950">
+        Đang tải dữ liệu thanh toán...
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white font-sans p-6 lg:p-10">
+      <h1 className="text-3xl font-bold mb-8">💳 Giao dịch</h1>
+
+      {pendingPayments.length === 0 && completedPayments.length === 0 ? (
+        // Trường hợp không có giao dịch nào
+        <div className="text-center text-gray-400 p-10 bg-gray-800 rounded-lg shadow-inner">
+          <IoWalletOutline size={48} className="mx-auto mb-4" />
+          <p className="text-lg">Không có giao dịch</p>
+          <p>Bạn chưa có bất kỳ giao dịch nào.</p>
+        </div>
       ) : (
-        <table className="w-full bg-white shadow rounded-lg">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-3">Mã thanh toán</th>
-              <th className="p-3">Booking</th>
-              <th className="p-3">Số tiền</th>
-              <th className="p-3">Phương thức</th>
-              <th className="p-3">Trạng thái</th>
-              <th className="p-3">Ngày tạo</th>
-              <th className="p-3">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((p) => (
-              <tr key={p.paymentID} className="border-t">
-                <td className="p-3 font-medium">#{p.paymentID}</td>
-                <td className="p-3">{p.bookingID}</td>
-                <td className="p-3">{p.amount.toLocaleString()} ₫</td>
-                <td className="p-3">{p.method}</td>
-                <td className="p-3 capitalize">{p.status}</td>
-                <td className="p-3">{new Date(p.createdAt).toLocaleString("vi-VN")}</td>
-                <td className="p-3">
-                  {p.status === "PENDING" ? (
-                    <button
-                      onClick={() => openPaymentForm(p)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-                    >
-                      Thanh toán
-                    </button>
-                  ) : (
-                    <span className="text-gray-500">Đã thanh toán</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {/* 🔹 Modal thanh toán */}
-      {selectedPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-[400px]">
-            <h2 className="text-xl font-bold mb-4 text-blue-600">
-              💰 Xác nhận thanh toán #{selectedPayment.paymentID}
+        // Hiển thị 2 danh sách
+        <div className="space-y-12">
+          
+          {/* 1. Giao dịch đang chờ */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4 text-yellow-400">
+              Giao dịch đang chờ
             </h2>
+            {pendingPayments.length === 0 ? (
+              <p className="text-gray-400 p-5 bg-gray-800 rounded-lg">
+                Tuyệt vời! Bạn không có giao dịch nào cần thanh toán.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {pendingPayments.map((payment) => (
+                  <PaymentItem key={payment.paymentID} payment={payment} isPending={true} />
+                ))}
+              </div>
+            )}
+          </section>
 
-            <p className="mb-2">
-              <strong>Số tiền:</strong>{" "}
-              {selectedPayment.amount.toLocaleString()} ₫
-            </p>
+          {/* 2. Lịch sử giao dịch */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4 text-green-400">
+              Lịch sử giao dịch
+            </h2>
+            {completedPayments.length === 0 ? (
+              <p className="text-gray-400 p-5 bg-gray-800 rounded-lg">
+                Bạn chưa có giao dịch nào hoàn thành.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {completedPayments.map((payment) => (
+                  <PaymentItem key={payment.paymentID} payment={payment} isPending={false} />
+                ))}
+              </div>
+            )}
+          </section>
 
-            <label className="block mt-3 text-gray-700 font-medium">
-              Phương thức thanh toán:
-            </label>
-            <select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="border rounded-lg px-3 py-2 w-full mt-1"
-            >
-              <option value="CASH">Tiền mặt</option>
-              <option value="CREDIT_CARD">Thẻ tín dụng</option>
-              <option value="BANK_TRANSFER">Chuyển khoản</option>
-            </select>
-
-            <label className="block mt-3 text-gray-700 font-medium">
-              Ghi chú:
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="border rounded-lg px-3 py-2 w-full mt-1"
-              placeholder="Nhập ghi chú (nếu có)..."
-            />
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setSelectedPayment(null)}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={confirmPayment}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-              >
-                Xác nhận
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 
 import project.repo.entity.Station;
 import project.repo.repository.StationRepository;
+import java.util.Comparator;
+
+import java.util.stream.Collectors;
 
 @Service
 public class StationService {
@@ -17,9 +20,6 @@ public class StationService {
         this.stationRepository = stationRepository;
     }
 
-    // =========================
-    // Các hàm gốc của bạn (giữ nguyên)
-    // =========================
 
     public List<Station> getAllStations() {
         return stationRepository.findAll();
@@ -68,41 +68,24 @@ public class StationService {
         return stationRepository.save(station);
     }
 
-    // =========================
-    // 🆕 HÀM MỚI: Tìm trạm gần nhất
-    // =========================
-    public Optional<Station> findNearestStation(double userLat, double userLon) {
-        List<Station> stations = stationRepository.findAll();
 
-        if (stations.isEmpty()) {
-            return Optional.empty();
-        }
+    public List<Station> findNearestStations(double userLat, double userLon, int n) {
+    List<Station> stations = stationRepository.findAll();
 
-        Station nearest = stations.get(0);
-        double minDistance = distance(userLat, userLon,
-                nearest.getLatitude(), nearest.getLongitude());
+    return stations.stream()
+        .sorted(Comparator.comparingDouble(s -> distance(userLat, userLon, s.getLatitude(), s.getLongitude())))
+        .limit(n)
+        .collect(Collectors.toList());
+}
 
-        for (Station station : stations) {
-            double dist = distance(userLat, userLon,
-                    station.getLatitude(), station.getLongitude());
-            if (dist < minDistance) {
-                minDistance = dist;
-                nearest = station;
-            }
-        }
-
-        return Optional.of(nearest);
-    }
-
-    // ✅ Hàm tính khoảng cách giữa 2 tọa độ GPS (đơn vị: km)
     private double distance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Bán kính Trái đất (km)
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
+    final int R = 6371; // Bán kính Trái đất (km)
+    double dLat = Math.toRadians(lat2 - lat1);
+    double dLon = Math.toRadians(lon2 - lon1);
+    double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+               Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+               Math.sin(dLon/2) * Math.sin(dLon/2);
+    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // khoảng cách km
+}
 }

@@ -35,9 +35,8 @@ public class VehicleService {
   public VehicleDTO getVehicleByVin(String vin){
     return vehicleMapper.toDTO(vehicleRepository.getVehicleByVin(vin));
   };
-  public List<VehicleDTO> getVehicleByUserId(Long id){
-    return vehicleRepository.getVehicleByOwnerId(id).stream().map(vehicle -> vehicleMapper.toDTO(vehicle)).collect(Collectors.toList());
-
+  public VehicleDTO getVehicleByUserId(Long id){
+    return vehicleRepository.getVehicleByOwnerId(id).stream().map(vehicle -> vehicleMapper.toDTO(vehicle)).findFirst().orElse(null);
   }
   public void deleteVehicle(Long id){
     vehicleRepository.deleteById(id);

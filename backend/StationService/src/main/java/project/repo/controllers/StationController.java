@@ -131,15 +131,17 @@ public class StationController {
     // ============================
     // 🆕 Thêm mới: Tìm trạm gần nhất theo tọa độ GPS
     // ============================
-    @GetMapping("/nearest")
-    public ResponseEntity<StationDTO> getNearestStation(
-            @RequestParam double lat,
-            @RequestParam double lon,
+    @GetMapping("/nearest/")
+    public List<StationDTO> findNearestStations(    
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam int n,
             @RequestHeader("X-User-Role") String role
     ) {
         checkRole(role, "ADMIN", "STAFF", "CUSTOMER");
-        return stationService.findNearestStation(lat, lon)
-                .map(station -> ResponseEntity.ok(stationMapper.toDTO(station)))
-                .orElse(ResponseEntity.notFound().build());
-    }
+        return stationService.findNearestStations(latitude, longitude, n)
+                .stream()
+                .map(stationMapper::toDTO)
+                .collect(Collectors.toList());
+    }    
 }
