@@ -28,6 +28,8 @@ public class Station {
     private Double longitude;
     @Enumerated(EnumType.STRING)
     private StationStatus status; // ACTIVE, INACTIVE, MAINTENANCE
+    @Column(name = "ai_forcast", columnDefinition = "TEXT") 
+    private String aiForecast;
     @Column
     private int capacity; // số lượng pin hoặc dung lượng trạm
     public enum StationStatus {

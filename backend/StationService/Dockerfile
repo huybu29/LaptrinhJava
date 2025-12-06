@@ -1,22 +1,24 @@
-# Sử dụng image JDK 17 nhẹ
-FROM eclipse-temurin:17-jdk-alpine
+# --- Stage 1: Build (Dùng Maven để build file .jar) ---
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Cài đặt công cụ cần thiết (chỉ 1 layer để cache tốt hơn)
-RUN apk add --no-cache curl wget tar
-
-# Thư mục làm việc
 WORKDIR /app
 
-# Sao chép file jar vào container
-COPY target/station-service-0.0.1-SNAPSHOT.jar app.jar
 
-# Cài dockerize để chờ các service phụ thuộc (MySQL, Config, Eureka)
-RUN wget -q https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-alpine-linux-amd64-v0.6.1.tar.gz \
-    && tar -C /usr/local/bin -xzf dockerize-alpine-linux-amd64-v0.6.1.tar.gz \
-    && rm dockerize-alpine-linux-amd64-v0.6.1.tar.gz
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Mở cổng service
-EXPOSE 8084
+COPY src ./src
 
-# Lệnh khởi chạy container
-ENTRYPOINT ["sh", "-c", "dockerize -wait tcp://mysql-db:3306 -wait http://config-server:8888/actuator/health -wait http://eureka-server:8761/eureka/apps -timeout 120s java -jar /app/app.jar"]
+RUN mvn clean package -DskipTests
+
+
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
+EXPOSE 8089
+
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

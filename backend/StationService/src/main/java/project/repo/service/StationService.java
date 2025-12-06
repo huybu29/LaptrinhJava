@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import project.repo.dtos.StationDTO;
 import project.repo.entity.Station;
 import project.repo.repository.StationRepository;
 import java.util.Comparator;
@@ -41,6 +42,7 @@ public class StationService {
             station.setLatitude(updatedStation.getLatitude());
             station.setLongitude(updatedStation.getLongitude());
             station.setStatus(updatedStation.getStatus());
+            station.setAiForecast(updatedStation.getAiForecast());
             return stationRepository.save(station);
         }).orElseThrow(() -> new RuntimeException("Station not found"));
     }
@@ -87,5 +89,19 @@ public class StationService {
                Math.sin(dLon/2) * Math.sin(dLon/2);
     double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c; // khoảng cách km
-}
+}   
+public Station updateAiForecastOnly(StationDTO dto) {
+        // 1. Tìm trạm theo ID trong DTO
+        Station station = stationRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Station not found with id: " + dto.getId()));
+
+        // 2. Chỉ cập nhật trường aiForecast
+        // Các trường khác (name, location...) bỏ qua để tránh ghi đè null/rác
+        if (dto.getAiForecast() != null) {
+            station.setAiForecast(dto.getAiForecast());
+        }
+
+        // 3. Lưu lại
+        return stationRepository.save(station);
+    }
 }

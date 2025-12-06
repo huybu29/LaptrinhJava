@@ -13,11 +13,7 @@ import {
 
 // === DỮ LIỆU THÔNG BÁO GIẢ (MOCK) ===
 // (Trong thực tế, bạn sẽ fetch API này)
-const mockNotifications = [
-  { id: 1, text: "Giao dịch #12345 tại Vincom đã hoàn tất.", time: "5 phút trước" },
-  { id: 2, text: "Gói thuê bao của bạn sẽ hết hạn vào 30/11/2025.", time: "1 giờ trước" },
-  { id: 3, text: "Chào mừng bạn đến với EVM!", time: "1 ngày trước" },
-];
+
 
 const CustomerLayout = () => {
   const { user, logout } = useContext(AuthContext);
@@ -95,55 +91,7 @@ const CustomerLayout = () => {
               </div>
             </div>
 
-            {/* Thông tin phải: Nút chuông (MỚI) */}
-            <div className="relative" ref={notificationRef}>
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-1 text-gray-400 hover:text-white relative"
-              >
-                <FaBell size={18} />
-                {/* Số thông báo (badge) */}
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                  3
-                </span>
-              </button>
-
-              {/* Dropdown thông báo (MỚI) */}
-              {showNotifications && (
-                <div className="absolute left-0 mt-2 w-72 bg-gray-800 rounded-lg shadow-lg z-20 border border-gray-700">
-                  <div className="p-3 border-b border-gray-700">
-                    <h4 className="font-semibold text-white">Thông báo</h4>
-                  </div>
-                  <div className="flex flex-col max-h-80 overflow-y-auto">
-                    {mockNotifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        className="p-3 hover:bg-gray-700 border-b border-gray-700 last:border-b-0 cursor-pointer"
-                      >
-                        <p className="text-sm text-gray-200">{notif.text}</p>
-                        <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
-                      </div>
-                    ))}
-                    {mockNotifications.length === 0 && (
-                      <p className="text-gray-400 text-center p-4">
-                        Không có thông báo mới.
-                      </p>
-                    )}
-                  </div>
-                  <div className="p-2 bg-gray-900 text-center rounded-b-lg">
-                    <button
-                      onClick={() => {
-                        navigate("/driver/notifications");
-                        setShowNotifications(false);
-                      }}
-                      className="text-sm text-blue-400 hover:underline"
-                    >
-                      Xem tất cả
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            
           </div>
 
           {/* MENU theo ROLE */}
@@ -166,12 +114,7 @@ const CustomerLayout = () => {
                   label="Lịch sử giao dịch"
                   onClick={() => navigate("/driver/payment")}
                 />
-                {/* ❌ ĐÃ XÓA: Mục "Thông báo" ở đây */}
-                <SidebarItem
-                  icon={<FaHeadset />}
-                  label="Hỗ trợ"
-                  onClick={() => navigate("/driver/support-center")}
-                />
+                
                 <SidebarItem
                   icon={<FaBox />}
                   label="Gói thuê"

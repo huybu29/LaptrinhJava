@@ -12,4 +12,5 @@ public class StationDTO {
     private Double latitude;
     private Double longitude;
     private String status;
+    private String aiForecast;
 }

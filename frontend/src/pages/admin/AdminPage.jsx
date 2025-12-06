@@ -51,9 +51,6 @@ const AdminPage = () => {
           </Link>
          
          
-          <Link to="/admin/tickets" className={getLinkClass("/admin/tickets")}>
-            <FiMessageSquare size={20} /> Support Ticket
-          </Link>
           <Link to="/admin/battery-packages" className={getLinkClass("/admin/battery-packages")}>
             <FiPackage size={20} /> Gói thuê bao
           </Link>

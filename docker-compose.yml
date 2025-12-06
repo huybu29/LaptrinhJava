@@ -1,207 +1,237 @@
-
-
-networks:
-  backend-net:
-    driver: bridge
-
-volumes:
-  mysql_data:
+version: '3.8'
 
 services:
-  mysql-db:
-    image: mysql:8.0
-    container_name: mysql-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: backend
-      MYSQL_USER: user
-      MYSQL_PASSWORD: springboot
+  # ====================================================
+  # 1. INFRASTRUCTURE (HẠ TẦNG)
+  # ====================================================
+  
+  # Eureka Server
+  eureka-server:
+    build: ./backend/eureka-server
+    container_name: micro_eureka
     ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - "8761:8761"
+    networks:
+      - micro_net
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -proot || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 10
-    networks:
-      - backend-net
+      start_period: 30s
 
-  config-server:
-    build:
-      context: ./backend/config-server
-    container_name: config-server
-    restart: unless-stopped
-    ports:
-      - "8888:8888"
+  # MySQL (Database Chính)
+  mysql:
+    image: mysql:8.0
+    container_name: micro_mysql
+    restart: always
     environment:
-      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/huybu29/spring-config-repo
-      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: main
-      GIT_SSL_NO_VERIFY: "true"
-    depends_on:
-      - mysql-db
-    networks:
-      - backend-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
-      interval: 20s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-
-  eureka-server:
-    build:
-      context: ./backend/eureka-server
-    container_name: eureka-server
-    restart: unless-stopped
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
-      - "8761:8761"
-    depends_on:
-      - config-server
-    environment:
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888/
-      SPRING_PROFILES_ACTIVE: docker
+      - "3308:3306" # Host 3308 để tránh trùng port máy thật
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - backend-net
+      - micro_net
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
-      interval: 20s
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 90s
 
-  gateway:
-    build:
-      context: ./backend/api-gateway
-    container_name: api-gateway
-    restart: unless-stopped
-    ports:
-      - "8067:8067"
-    depends_on:
-      - eureka-server
+  # Apache NiFi
+  nifi:
+    image: apache/nifi:latest
+    container_name: micro_nifi
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      - NIFI_WEB_HTTP_PORT=8080
+    ports:
+      - "8443:8443"
     networks:
-      - backend-net
+      - micro_net
 
-  # Template cho các microservice backend
+  # ====================================================
+  # 2. MICROSERVICES (BACKEND)
+  # ====================================================
+
   user-service:
-    build: ./backend/UserService
-    container_name: user-service
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    depends_on:
-      - eureka-server
-      - mysql-db
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    build: ./backend/userService
+    container_name: micro_user
+    restart: on-failure
     networks:
-      - backend-net
+      - micro_net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8085
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/user_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      # Ép dùng MySQL Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  booking-service:
+    build: ./backend/bookingService
+    container_name: micro_booking
+    restart: on-failure
+    networks:
+      - micro_net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8081
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booking_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      # Ép dùng MySQL Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   station-service:
     build: ./backend/StationService
-    container_name: station-service
-    restart: unless-stopped
-    ports:
-      - "8084:8084"
-    depends_on:
-      - eureka-server
-      - mysql-db
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    container_name: micro_station
+    restart: on-failure
     networks:
-      - backend-net
+      - micro_net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8089
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/station_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      # Ép dùng MySQL Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   payment-service:
-    build: ./backend/PaymentService
-    container_name: payment-service
-    restart: unless-stopped
-    ports:
-      - "8087:8087"
-    depends_on:
-      - eureka-server
-      - mysql-db
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    build: ./backend/paymentService
+    container_name: micro_payment
+    restart: on-failure
     networks:
-      - backend-net
+      - micro_net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8084
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/payment_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      # Ép dùng MySQL Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   vehicle-battery-service:
     build: ./backend/Vehicle-BatteryService
-    container_name: vehicle-battery-service
-    restart: unless-stopped
-    ports:
-      - "8083:8083"
-    depends_on:
-      - eureka-server
-      - mysql-db
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    container_name: micro_vehicle_battery
+    restart: on-failure
     networks:
-      - backend-net
-
-  admin-service:
-    build: ./backend/AdminService
-    container_name: admin-service
-    restart: unless-stopped
-    ports:
-      - "8069:8069"
+      - micro_net
     depends_on:
-      - eureka-server
-      - mysql-db
+      eureka-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
     environment:
+      SERVER_PORT: 8083
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    networks:
-      - backend-net
-
-  booking-service:
-    build: ./backend/BookingService
-    container_name: booking-service
-    restart: unless-stopped
-    ports:
-      - "8085:8085"
-    depends_on:
-      - eureka-server
-      - mysql-db
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    networks:
-      - backend-net
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vehicle_battery_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      # Ép dùng MySQL Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   support-service:
     build: ./backend/SupportService
-    container_name: support-service
-    restart: unless-stopped
-    ports:
-      - "8086:8086"
+    container_name: micro_support
+    restart: on-failure
+    networks:
+      - micro_net
     depends_on:
-      - eureka-server
-      - mysql-db
+      eureka-server:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8086
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/support_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      # Ép dùng MySQL Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  # ====================================================
+  # 3. API GATEWAY
+  # ====================================================
+  api-gateway:
+    build: ./backend/api-gateway
+    container_name: micro_gateway
+    ports:
+      - "8067:8067"
+    networks:
+      - micro_net
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    networks:
-      - backend-net
-  adminer:
-    image: adminer
-    container_name: adminer
-    restart: unless-stopped
-    ports:
-      - "8090:8090"
     depends_on:
-      - mysql-db
-    networks:
-      - backend-net
+      eureka-server:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+      station-service:
+        condition: service_started
+      vehicle-battery-service:
+        condition: service_started
+      support-service:
+        condition: service_started
+
+  # ====================================================
+  # 4. FRONTEND
+  # ====================================================
   frontend:
-    build:
-      context: ./frontend
-    container_name: frontend
-    restart: unless-stopped
+    build: ./frontend
+    container_name: micro_frontend
+    restart: always
     ports:
-      - "3000:80"
-    depends_on:
-      - gateway
+      - "5173:80"
     networks:
-      - backend-net
+      - micro_net
+    depends_on:
+      - api-gateway
+
+volumes:
+  mysql_data:
+  nifi_data:
+
+networks:
+  micro_net:
+    driver: bridge

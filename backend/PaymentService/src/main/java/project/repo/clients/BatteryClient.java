@@ -8,7 +8,7 @@ import java.util.List;
 
 @FeignClient(
     name = "vehicle-battery-service",
-    url = "http://localhost:8083/api/batteries"  
+    url = "http://vehicle-battery-service:8083/api/batteries"  
 )
 public interface BatteryClient {
 

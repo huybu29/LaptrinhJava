@@ -144,4 +144,10 @@ public class StationController {
                 .map(stationMapper::toDTO)
                 .collect(Collectors.toList());
     }    
+    @PostMapping("/update-forecast")
+    public ResponseEntity<StationDTO> updateForecast(@RequestBody StationDTO stationDTO) {
+        // Chỉ cần gửi id và aiForecast là đủ
+        Station updatedStation = stationService.updateAiForecastOnly(stationDTO);
+        return ResponseEntity.ok(stationMapper.toDTO(updatedStation));
+    }
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
     name = "vehicle-battery-service",
-    url = "http://localhost:8083"
+    url = "http://vehicle-battery-service:8083"
 )
 public interface BatteryClient {
 

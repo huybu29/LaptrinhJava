@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(
     name = "booking-service",
-    url = "http://localhost:8081"  
+    url = "http://booking-service:8081"  
 )
 public interface BookingClient {
 

@@ -1,32 +1,32 @@
-# ---------- 1️⃣ Stage build ----------
-FROM node:22-alpine AS build
-
-# Thiết lập thư mục làm việc
+# --- Stage 1: Build (Dùng Node để build code) ---
+FROM node:18-alpine AS build
 WORKDIR /app
 
-# Sao chép file khai báo dependencies trước (để tận dụng cache)
-COPY package*.json ./
+# 1. Copy package.json và cài đặt dependencies
+COPY package.json package-lock.json ./
+RUN npm install
 
-# Cài dependencies (dùng --frozen-lockfile nếu có package-lock.json)
-RUN npm ci --legacy-peer-deps
-
-# Sao chép toàn bộ source code
+# 2. Copy source code
 COPY . .
 
-# Build production
+# 3. Build project
+# Lưu ý: Vite sẽ tạo ra thư mục 'dist'
 RUN npm run build
 
-# ---------- 2️⃣ Stage chạy Nginx ----------
+# --- Stage 2: Serve (Dùng Nginx để chạy web) ---
 FROM nginx:alpine
 
-# Xóa file mặc định của Nginx
-RUN rm -rf /usr/share/nginx/html/*
+# Xóa cấu hình mặc định của Nginx
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy file build từ stage trước sang
+# Copy cấu hình Nginx custom của chúng ta vào
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy folder 'dist' từ Stage 1 vào thư mục web của Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose port
+# Mở cổng 80 (Cổng mặc định của Nginx)
 EXPOSE 80
 
-# Chạy Nginx ở foreground
+# Lệnh chạy Nginx
 CMD ["nginx", "-g", "daemon off;"]

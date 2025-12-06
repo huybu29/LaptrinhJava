@@ -158,28 +158,55 @@ const CustomerDashboard = () => {
         
         {/* === CỘT TRÁI (Giữ nguyên) === */}
         <div className="lg:col-span-2 space-y-6">
-          {vehicle ? (
-            <>
-              <div className="bg-[#161B28] rounded-2xl p-6 relative overflow-hidden shadow-lg border border-gray-800 flex flex-col md:flex-row items-center justify-between min-h-[200px]">
-                <div className="z-10 w-full md:w-1/2">
-                  <p className="text-gray-400 text-sm mb-1">Phương tiện</p>
-                  <h2 className="text-2xl font-bold text-white mb-2">VIN</h2>
-                  <p className="text-gray-400 text-sm mb-6">Biển số: <span className="text-blue-400 font-mono">{vehicle.vin}</span></p>
-                  <button className="px-6 py-2 bg-[#252A36] hover:bg-[#2d3342] text-white rounded-lg text-sm font-medium border border-gray-700">Chi tiết</button>
-                </div>
-                
-              </div>
-              <BatteryProgressBar percentage={batteryPercent} />
-            </>
-          ) : (
-            <div className="bg-[#161B28] rounded-2xl p-10 border border-gray-800 text-center"><h2 className="text-white">Chưa liên kết xe</h2></div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <button className="bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-semibold">Tìm trạm đổi pin</button>
-             <button className="bg-[#1F2937] hover:bg-[#283240] text-white py-4 rounded-xl font-semibold border border-gray-700">Đặt lịch</button>
-          </div>
+  {vehicle && vehicle.vin ? (
+    // TRƯỜNG HỢP ĐÃ CÓ XE (Giữ nguyên logic cũ)
+    <>
+      <div className="bg-[#161B28] rounded-2xl p-6 relative overflow-hidden shadow-lg border border-gray-800 flex flex-col md:flex-row items-center justify-between min-h-[200px]">
+        <div className="z-10 w-full md:w-1/2">
+          <p className="text-gray-400 text-sm mb-1">Phương tiện</p>
+          <h2 className="text-2xl font-bold text-white mb-2">VIN</h2>
+          <p className="text-gray-400 text-sm mb-6">Biển số: <span className="text-blue-400 font-mono">{vehicle.vin}</span></p>
+          <button className="px-6 py-2 bg-[#252A36] hover:bg-[#2d3342] text-white rounded-lg text-sm font-medium border border-gray-700">Chi tiết</button>
         </div>
+      </div>
+      <BatteryProgressBar percentage={batteryPercent} />
+    </>
+  ) : (
+    // TRƯỜNG HỢP CHƯA CÓ XE (Đã thêm nút Đăng ký)
+    <div className="bg-[#161B28] rounded-2xl p-10 border border-gray-800 text-center flex flex-col items-center justify-center min-h-[300px]">
+        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400">
+            <FiSearch size={24} />
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">Chưa liên kết phương tiện</h2>
+        <p className="text-gray-400 mb-6 max-w-md">
+            Bạn chưa có xe nào trong hệ thống. Hãy đăng ký xe để bắt đầu sử dụng dịch vụ đổi pin và đặt lịch.
+        </p>
+        <button 
+            onClick={() => navigate('/driver/my-vehicle')} // Đổi '/register-vehicle' thành đường dẫn thực tế của bạn
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg shadow-blue-900/20"
+        >
+            <FiPlusCircle size={20} />
+            Đăng ký xe ngay
+        </button>
+    </div>
+  )}
+  
+  {/* Các nút chức năng dưới (chỉ hiện khi có xe hoặc tùy logic của bạn) */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+     <button 
+        disabled={!vehicle}
+        className={`py-4 rounded-xl font-semibold transition-colors ${vehicle ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+     >
+        Tìm trạm đổi pin
+     </button>
+     <button 
+        disabled={!vehicle}
+        className={`py-4 rounded-xl font-semibold border ${vehicle ? 'bg-[#1F2937] hover:bg-[#283240] text-white border-gray-700' : 'bg-gray-800 text-gray-500 border-transparent cursor-not-allowed'}`}
+     >
+        Đặt lịch
+     </button>
+  </div>
+</div>
 
         {/* === CỘT PHẢI === */}
         <div className="lg:col-span-1 space-y-6">

@@ -1,24 +1,24 @@
-# --- Stage 1: Build ---
+# --- Stage 1: Build (Dùng Maven để build file .jar) ---
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 
 WORKDIR /app
+
 
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
 COPY src ./src
+
 RUN mvn clean package -DskipTests
 
-# --- Stage 2: Run ---
-FROM eclipse-temurin:17-jre-alpine
 
-# >>> THÊM DÒNG NÀY ĐỂ CÀI CURL <<<
-RUN apk add --no-cache curl
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 8761
+EXPOSE 8081
+
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
