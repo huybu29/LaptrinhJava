@@ -82,11 +82,7 @@ const StaffLayout = () => {
             icon={<FaCalendarAlt />}
             label="Quản lý Đặt lịch"
             />
-            <SidebarLink
-              to="/staff/transactions"
-              icon={<FaExchangeAlt />}
-              label="Xử lý Giao dịch"
-            />
+            
           </nav>
         </div>
 

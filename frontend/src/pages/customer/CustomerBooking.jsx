@@ -101,7 +101,7 @@ const BookingPage = () => {
   });
 
   const handleSelectStation = (station) => {
-    navigate(`/driver/booking/${station.id}`);
+    navigate(`/driver/station/${station.id}`);
   };
 
   if (loading)

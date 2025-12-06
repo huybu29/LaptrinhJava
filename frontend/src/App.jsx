@@ -20,6 +20,7 @@ import CustomerTicketPage from './pages/customer/CustomerSupport';
 import CustomerBookingDetail from './pages/customer/CustomerBookingDetail';
 import CustomerPaymentDetail from './pages/customer/CustomerPaymentDetail';
 import SubscriptionPlans from './pages/customer/CustomerSubsciptionList';
+import StationDetail from './pages/customer/CustomerStationDetail';
 // Admin pages
 import AdminPage from './pages/admin/AdminPage';
 import AdminAppointments from './pages/admin/AdBookingManagement';
@@ -68,6 +69,8 @@ function App() {
             <Route path="payment/:id" element={<CustomerPaymentDetail />} />
             <Route path="rental-packages" element={<SubscriptionPlans />} />
             <Route path="checkout" element={<SubscriptionCheckout />} />
+            <Route path="station/:id" element={<StationDetail />} />
+            
           </Route>
 
           {/* Admin Routes */}

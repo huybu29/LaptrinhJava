@@ -50,9 +50,7 @@ const AdminPage = () => {
             <FiMapPin size={20} /> Quản lý trạm
           </Link>
          
-          <Link to="/admin/batteries" className={getLinkClass("/admin/batteries")}>
-            <FiBatteryCharging size={20} /> Quản lý pin
-          </Link>
+         
           <Link to="/admin/tickets" className={getLinkClass("/admin/tickets")}>
             <FiMessageSquare size={20} /> Support Ticket
           </Link>

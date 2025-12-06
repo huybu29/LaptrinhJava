@@ -1,4 +1,4 @@
-package project.repo.controller;
+package project.repo.controllers;
 
 import java.util.List;
 

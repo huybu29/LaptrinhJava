@@ -90,6 +90,7 @@ const CustomerDashboard = () => {
         try {
             const vRes = await api.get("/vehicles/me");
             setVehicle(vRes.data);
+            
             if (vRes.data?.id) {
                 const bRes = await api.get(`/batteries/vehicle/${vRes.data.id}`);
                 setBattery(bRes.data);
@@ -162,11 +163,11 @@ const CustomerDashboard = () => {
               <div className="bg-[#161B28] rounded-2xl p-6 relative overflow-hidden shadow-lg border border-gray-800 flex flex-col md:flex-row items-center justify-between min-h-[200px]">
                 <div className="z-10 w-full md:w-1/2">
                   <p className="text-gray-400 text-sm mb-1">Phương tiện</p>
-                  <h2 className="text-2xl font-bold text-white mb-2">{vehicle.model}</h2>
-                  <p className="text-gray-400 text-sm mb-6">Biển số: <span className="text-blue-400 font-mono">{vehicle.licensePlate}</span></p>
+                  <h2 className="text-2xl font-bold text-white mb-2">VIN</h2>
+                  <p className="text-gray-400 text-sm mb-6">Biển số: <span className="text-blue-400 font-mono">{vehicle.vin}</span></p>
                   <button className="px-6 py-2 bg-[#252A36] hover:bg-[#2d3342] text-white rounded-lg text-sm font-medium border border-gray-700">Chi tiết</button>
                 </div>
-                <div className="w-full md:w-1/2 flex justify-center relative"><div className="w-48 h-24 bg-gray-800/50 rounded-lg border border-gray-700"></div></div>
+                
               </div>
               <BatteryProgressBar percentage={batteryPercent} />
             </>

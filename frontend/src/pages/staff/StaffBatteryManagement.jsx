@@ -22,8 +22,7 @@ const ALL_STATUSES = ["FULL", "CHARGING", "MAINTENANCE", "IN_USE"];
 const buildBatteryPayload = (b, nextStatus) => ({
   id: b.id,
   serialNumber: b.serialNumber,
-  model: b.model,
-  capacity: b.capacity,
+  capacityKwh: b.capacityKwh,
   soh: b.soh,
   status: nextStatus, // Trạng thái mới
   stationId: b.stationId,
@@ -86,8 +85,7 @@ const StaffInventoryPage = () => {
     if (q) {
       result = result.filter(
         (b) =>
-          (b.serialNumber || "").toLowerCase().includes(q) ||
-          (b.model || "").toLowerCase().includes(q)
+          (b.serialNumber || "").toLowerCase().includes(q) 
       );
     }
     
@@ -191,7 +189,7 @@ const StaffInventoryPage = () => {
           <thead className="bg-gray-700 text-gray-300 uppercase text-sm">
             <tr>
               <th className="px-4 py-3">Mã Pin (Serial)</th>
-              <th className="px-4 py-3">Model</th>
+              
               <th className="px-4 py-3">Dung lượng</th>
               <th className="px-4 py-3">Sức khỏe (SoH)</th>
               <th className="px-4 py-3">Trạng thái</th>
@@ -209,8 +207,8 @@ const StaffInventoryPage = () => {
               filteredBatteries.map((b) => (
                 <tr key={b.id} className="hover:bg-gray-700 transition">
                   <td className="px-4 py-3 font-mono text-white">{b.batteryCode}</td>
-                  <td className="px-4 py-3">{b.model || "-"}</td>
-                  <td className="px-4 py-3">{b.capacity ? `${b.capacityKwh} kWh` : "-"}</td>
+                
+                  <td className="px-4 py-3">{b.capacityKwh ? `${b.capacityKwh} kWh` : "-"}</td>
                   <td className="px-4 py-3">{b.soh ? `${b.soh}%` : "-"}</td>
                   <td className="px-4 py-3"><StatusBadge value={b.status || "UNKNOWN"} /></td>
                   <td className="px-4 py-3 text-center">
@@ -244,7 +242,7 @@ const StaffInventoryPage = () => {
                 <label className="block text-sm font-medium text-gray-400">Mã Pin</label>
                 <input
                   readOnly
-                  value={selected.serialNumber}
+                  value={selected.id}
                   className="mt-1 border px-3 py-2 rounded bg-gray-700 text-gray-300 w-full"
                 />
               </div>
