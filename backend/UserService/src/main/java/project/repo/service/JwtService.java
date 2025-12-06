@@ -33,6 +33,7 @@ public class JwtService {
                 .setSubject(user.getUsername())
                 .claim("role", user.getRole())
                 .claim("userId", user.getId())
+                .claim("stationId", user.getStationId())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + EXPIRATION))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)

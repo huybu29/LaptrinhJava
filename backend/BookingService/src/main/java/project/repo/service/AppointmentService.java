@@ -26,7 +26,7 @@ public class AppointmentService {
     private final AppointmentMapper appointmentMapper;
     private final BatteryClient batteryClient;
     private static final Set<AppointmentStatus> ACTIVE_STATUSES =
-            Set.of(AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.IN_PROGRESS);
+            Set.of(AppointmentStatus.PENDING,  AppointmentStatus.IN_PROGRESS);
 
      public AppointmentDTO create(AppointmentDTO dto) {
         
@@ -97,8 +97,7 @@ public class AppointmentService {
 
     private boolean isValidTransition(AppointmentStatus current, AppointmentStatus next) {
         return switch (current) {
-            case PENDING -> next == AppointmentStatus.CONFIRMED || next == AppointmentStatus.CANCELED;
-            case CONFIRMED -> next == AppointmentStatus.IN_PROGRESS || next == AppointmentStatus.CANCELED;
+            case PENDING -> next == AppointmentStatus.IN_PROGRESS || next == AppointmentStatus.CANCELED;
             case IN_PROGRESS -> next == AppointmentStatus.COMPLETED || next == AppointmentStatus.CANCELED;
             case COMPLETED, CANCELED -> false;
         };
@@ -110,6 +109,11 @@ public class AppointmentService {
     public boolean existsById(Long id) {
     return appointmentRepository.existsById(id);
 }
-    
+    public List<AppointmentDTO> getAppointmentsByStation(Long stationId) {
+        return appointmentRepository.findByStationId(stationId)
+                .stream()
+                .map(appointment -> appointmentMapper.toDto(appointment))
+                .collect(Collectors.toList());
+    }
 }
 

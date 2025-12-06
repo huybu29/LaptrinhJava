@@ -1,8 +1,6 @@
-// src/pages/RegisterPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -21,142 +19,175 @@ const RegisterPage = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setMessage("");
+    
     try {
       await api.post("auth/register", form);
-      setMessage("✅ Đăng ký thành công!");
-      navigate("/login");
+      setMessage("✅ Đăng ký thành công! Đang chuyển hướng...");
+      // Delay nhẹ để người dùng đọc thông báo thành công
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data || "⚠️ Đăng ký thất bại. Vui lòng thử lại.");
+      // Lấy message lỗi từ backend nếu có
+      const errorMsg = err.response?.data?.message || err.response?.data || "⚠️ Đăng ký thất bại.";
+      setMessage(typeof errorMsg === 'string' ? errorMsg : "⚠️ Có lỗi xảy ra.");
     }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Register Form */}
-      <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-900">
-        <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
-          <h2 className="text-3xl font-bold text-center text-white mb-6">
-            Tạo tài khoản mới
+    <div className="flex h-screen w-full bg-[#0B0F19] text-white font-sans overflow-hidden">
+      
+      {/* --- LEFT SIDE: IMAGE (Giống trang Login) --- */}
+      <div className="hidden lg:flex w-1/2 relative items-center justify-center bg-[#050B14]">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-transparent to-transparent z-10"></div>
+        <div className="absolute -bottom-1/2 -left-1/4 w-[140%] h-[140%] border-[1px] border-blue-500/20 rounded-full animate-pulse"></div>
+        <div className="absolute -bottom-1/2 -left-1/4 w-[120%] h-[120%] border-[1px] border-blue-500/10 rounded-full"></div>
+        
+        <div className="z-20 text-center px-12">
+          <h2 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">
+            Tham gia cùng <br/> <span className="text-blue-500">EV Station</span>
           </h2>
+          <p className="text-gray-400 text-lg max-w-md mx-auto leading-relaxed">
+            Kiến tạo mạng lưới giao thông xanh và bền vững ngay hôm nay.
+          </p>
+        </div>
+      </div>
 
-          <form onSubmit={handleRegister} className="space-y-5">
+      {/* --- RIGHT SIDE: REGISTER FORM --- */}
+      {/* Thêm 'overflow-y-auto' để scroll được nếu form dài quá màn hình */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-[#0B0F19] px-4 overflow-y-auto">
+        
+        <div className="w-full max-w-[400px] py-10">
+          
+          {/* Logo & Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-blue-500 flex items-center gap-2 mb-2">
+              ev_station <span className="text-white font-normal">System</span>
+            </h1>
+            <h2 className="text-3xl font-bold text-white">Tạo tài khoản</h2>
+            <p className="text-gray-400 mt-2">Điền thông tin để tham gia hệ thống</p>
+          </div>
+
+          {/* Toggle Tabs */}
+          <div className="flex bg-[#161B28] p-1 rounded-xl mb-6">
+            <button
+              onClick={() => navigate("/login")}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-[#1E293B]/50 transition-all"
+            >
+              Đăng nhập
+            </button>
+            <button className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-[#1E293B] text-white shadow-md">
+              Đăng ký
+            </button>
+          </div>
+
+          {/* Form Fields */}
+          <form onSubmit={handleRegister} className="space-y-4">
+            
             {/* Username */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Tên đăng nhập
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Tên đăng nhập</label>
               <input
                 type="text"
                 name="username"
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Ví dụ: user123"
                 value={form.username}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full px-4 py-3 bg-[#161B28] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-gray-500"
                 required
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Mật khẩu
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Mật khẩu</label>
               <input
                 type="password"
                 name="password"
                 placeholder="Nhập mật khẩu"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full px-4 py-3 bg-[#161B28] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-gray-500"
                 required
               />
             </div>
 
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Họ và tên
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Họ và tên</label>
               <input
                 type="text"
                 name="fullName"
-                placeholder="Nhập họ và tên"
+                placeholder="Nguyễn Văn A"
                 value={form.fullName}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full px-4 py-3 bg-[#161B28] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-gray-500"
                 required
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
               <input
                 type="email"
                 name="email"
-                placeholder="Nhập email"
+                placeholder="example@email.com"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full px-4 py-3 bg-[#161B28] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-gray-500"
               />
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Số điện thoại
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Số điện thoại</label>
               <input
                 type="text"
                 name="phone"
-                placeholder="Nhập số điện thoại"
+                placeholder="0912xxxxxx"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full px-4 py-3 bg-[#161B28] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-gray-500"
               />
             </div>
 
-            {/* Message */}
+            {/* Message Notification */}
             {message && (
-              <p
-                className={`text-sm text-center py-2 rounded ${
+              <div
+                className={`text-sm text-center py-3 rounded-lg border ${
                   message.includes("✅")
-                    ? "text-green-400 bg-green-900/20"
-                    : "text-red-400 bg-red-900/20"
+                    ? "bg-green-500/10 border-green-500/50 text-green-400"
+                    : "bg-red-500/10 border-red-500/50 text-red-400"
                 }`}
               >
                 {message}
-              </p>
+              </div>
             )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition duration-200"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg shadow-blue-600/30 transition-all duration-200 mt-2"
             >
-              Đăng ký
+              ĐĂNG KÝ
             </button>
           </form>
 
-          {/* Login Link */}
-          <div className="mt-6 text-center text-sm text-gray-400">
+          {/* Footer Link */}
+          <div className="mt-6 text-center text-sm text-gray-500">
             Đã có tài khoản?{" "}
-            <a
-              href="/login"
-              className="text-blue-400 font-medium hover:underline"
+            <span 
+              onClick={() => navigate("/login")}
+              className="text-blue-500 hover:text-blue-400 font-medium ml-1 cursor-pointer hover:underline"
             >
               Đăng nhập ngay
-            </a>
+            </span>
           </div>
-        </div>
-      </div>
 
-      {/* Right side - Illustration */}
-      <div className="hidden md:flex w-1/2 bg-white items-center justify-center">
-        
+        </div>
       </div>
     </div>
   );

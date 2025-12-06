@@ -4,7 +4,8 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import api from "../../services/api";
-import { FiSearch } from "react-icons/fi";
+// Import thêm FiNavigation để làm nút chỉ đường
+import { FiSearch, FiNavigation } from "react-icons/fi"; 
 import { IoFlash } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
@@ -23,7 +24,7 @@ const BookingPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
 
-  // Calculate distance between two coordinates
+  // Calculate distance between two coordinates (Logic cũ giữ nguyên)
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -70,11 +71,12 @@ const BookingPage = () => {
   const getMarkerColor = (st) => {
     switch (st.status) {
       case "AVAILABLE":
-        return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+      case "ACTIVE": // Thêm case ACTIVE nếu backend trả về
+        return "http://maps.google.com/mapfiles/ms/icons/green-dot.png"; // Xanh
       case "LOW_STOCK":
-        return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+        return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png"; // Vàng
       case "UNAVAILABLE":
-        return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+        return "http://maps.google.com/mapfiles/ms/icons/red-dot.png"; // Đỏ
       default:
         return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
     }
@@ -84,11 +86,14 @@ const BookingPage = () => {
     const matchSearch =
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.location.toLowerCase().includes(search.toLowerCase());
+    
+    // Logic filter cũ
     const matchFilter =
       filter === "ALL" ||
-      (filter === "AVAILABLE" && s.status === "AVAILABLE") ||
+      (filter === "AVAILABLE" && (s.status === "AVAILABLE" || s.status === "ACTIVE")) || // Hỗ trợ cả ACTIVE
       (filter === "LOW_STOCK" && s.status === "LOW_STOCK") ||
       (filter === "UNAVAILABLE" && s.status === "UNAVAILABLE");
+      
     const withinRadius =
       !userCoords.lat ||
       getDistance(userCoords.lat, userCoords.lng, s.latitude, s.longitude) <= radius;
@@ -132,25 +137,25 @@ const BookingPage = () => {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3 py-1 rounded-lg ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                   filter === f
                     ? f === "AVAILABLE"
-                      ? "bg-green-600"
+                      ? "bg-green-600 text-white"
                       : f === "LOW_STOCK"
-                      ? "bg-yellow-600"
+                      ? "bg-yellow-600 text-white"
                       : f === "UNAVAILABLE"
-                      ? "bg-red-600"
-                      : "bg-teal-600"
-                    : "bg-gray-700"
+                      ? "bg-red-600 text-white"
+                      : "bg-teal-600 text-white"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                 }`}
               >
                 {f === "AVAILABLE"
-                  ? "Available"
+                  ? "Sẵn sàng"
                   : f === "LOW_STOCK"
-                  ? "Low Stock"
+                  ? "Sắp hết"
                   : f === "UNAVAILABLE"
-                  ? "Unavailable"
-                  : "All"}
+                  ? "Bảo trì"
+                  : "Tất cả"}
               </button>
             ))}
           </div>
@@ -165,36 +170,109 @@ const BookingPage = () => {
             max="30"
             value={radius}
             onChange={(e) => setRadius(Number(e.target.value))}
-            className="w-full"
+            className="w-full accent-teal-500"
           />
           <p className="text-gray-300 text-sm">{radius} km</p>
         </div>
 
         <hr className="border-gray-600 mb-4" />
 
-        {/* Station List */}
-        <h3 className="text-lg font-bold mb-3">Stations Near You</h3>
-        <div className="flex flex-col gap-4">
-          {filteredStations.map((s) => (
-            <InfoCard key={s.id} title={s.name} >
-              <p>📍 {s.location}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <IoFlash size={20} />
-                <span>{s.available}/{s.total} batteries</span>
+        {/* Station List - PHẦN ĐƯỢC CHỈNH SỬA UI */}
+        <h3 className="text-lg font-bold mb-3 flex justify-between items-center">
+          Stations Near You 
+          <span className="text-xs font-normal text-gray-400 bg-gray-700 px-2 py-1 rounded-full">{filteredStations.length}</span>
+        </h3>
+        
+        <div className="flex flex-col gap-4 pb-10">
+          {filteredStations.map((s) => {
+             // Tính khoảng cách hiển thị UI
+             const distance = userCoords.lat 
+                ? getDistance(userCoords.lat, userCoords.lng, s.latitude, s.longitude).toFixed(1) 
+                : "...";
+             
+             // Xác định màu và text cho Badge trạng thái
+             let statusColor = "bg-gray-500/10 text-gray-400 border-gray-500/20";
+             let statusText = "Không rõ";
+
+             if (s.status === "ACTIVE" || s.status === "AVAILABLE") {
+                 statusColor = "bg-green-500/10 text-green-500 border-green-500/20";
+                 statusText = "Sẵn sàng";
+             } else if (s.status === "LOW_STOCK") {
+                 statusColor = "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+                 statusText = "Sắp hết";
+             } else if (s.status === "UNAVAILABLE") {
+                 statusColor = "bg-red-500/10 text-red-500 border-red-500/20";
+                 statusText = "Bảo trì";
+             }
+
+             return (
+              <div 
+                key={s.id}
+                className="bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-teal-500/50 transition-all shadow-lg group"
+              >
+                {/* Header Card: Tên + Khoảng cách + Badge */}
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="text-lg font-bold text-white group-hover:text-teal-400 transition-colors">
+                      {s.name}
+                    </h4>
+                    <span className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                      <FiNavigation className="w-3 h-3" /> Cách đây {distance} km
+                    </span>
+                  </div>
+                  <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${statusColor}`}>
+                    {statusText}
+                  </div>
+                </div>
+
+                {/* Body Card: Địa chỉ + Pin */}
+                <div className="space-y-2 mb-4">
+                   <p className="text-sm text-gray-300 line-clamp-1" title={s.location}>
+                     📍 {s.location}
+                   </p>
+                   <div className="flex items-center gap-2 mt-2">
+                     <div className={`flex items-center gap-1 font-medium ${s.available > 0 ? 'text-teal-400' : 'text-red-400'}`}>
+                        <IoFlash size={16} />
+                        <span>{s.available}/{s.total} Pin</span>
+                     </div>
+                   </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                   {/* Nút Book / Xem chi tiết - Chỉ hiện nếu trạm Active/Available/Low Stock */}
+                   {(s.status === "ACTIVE" || s.status === "AVAILABLE" || s.status === "LOW_STOCK") ? (
+                      <button 
+                        className="flex-1 bg-teal-600 hover:bg-teal-500 text-white py-2 rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-teal-900/20" 
+                        onClick={() => handleSelectStation(s)}
+                      > 
+                        Xem chi tiết 
+                      </button>
+                   ) : (
+                      <button className="flex-1 bg-gray-700 text-gray-500 py-2 rounded-lg text-sm font-semibold cursor-not-allowed" disabled>
+                        Tạm ngưng
+                      </button>
+                   )}
+
+                   {/* Nút chỉ đường Google Maps */}
+                   <button 
+                      onClick={(e) => {
+                         e.stopPropagation();
+                         window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.latitude},${s.longitude}`, '_blank');
+                      }}
+                      className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg border border-gray-600 transition-colors"
+                      title="Chỉ đường trên Google Maps"
+                   >
+                      <FiNavigation size={18} />
+                   </button>
+                </div>
               </div>
-              {s.status === "ACTIVE" && ( <button className="mt-3 w-full bg-teal-500 py-2 rounded-lg font-semibold hover:bg-teal-600" onClick={() => handleSelectStation(s)}> Book Now </button> )}
-              {s.status === "LOW_STOCK" && (
-                <p className="mt-2 text-yellow-400">Low availability. Book soon.</p>
-              )}
-              {s.status === "UNAVAILABLE" && (
-                <p className="mt-2 text-red-400">Currently unavailable.</p>
-              )}
-            </InfoCard>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* MAP */}
+      {/* MAP - Giữ nguyên */}
       <div className="w-2/3 relative">
         <LoadScript googleMapsApiKey="AIzaSyBAOGNM5Aqs3eL-LYk9Sx1d8cljbIqZfXM">
           <GoogleMap
@@ -204,9 +282,19 @@ const BookingPage = () => {
             }}
             zoom={13}
             mapContainerStyle={{ width: "100%", height: "100%" }}
+            options={{
+               styles: [ // Thêm dark mode cho map để đồng bộ
+                    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                    { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+                    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+                    { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+               ]
+            }}
           >
             {userCoords.lat && (
-              <Marker position={userCoords} label={{ text: "You", color: "black" }} />
+              <Marker position={userCoords} label={{ text: "You", color: "white" }} />
             )}
             {stations.map((s) => (
               <Marker
@@ -222,16 +310,5 @@ const BookingPage = () => {
     </div>
   );
 };
-
-// Card Component
-const InfoCard = ({ title, children, onClick }) => (
-  <div
-    onClick={onClick}
-    className="bg-gray-800 p-4 rounded-xl border border-gray-700 cursor-pointer hover:bg-gray-700 transition"
-  >
-    <h4 className="text-xl font-semibold">{title}</h4>
-    {children}
-  </div>
-);
 
 export default BookingPage;

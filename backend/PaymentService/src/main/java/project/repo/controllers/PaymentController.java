@@ -121,7 +121,29 @@ public PaymentDto updatePayment(
         checkRole(role, "ADMIN");
         paymentService.deletePayment(paymentId);
     }
-   
+   @PostMapping("/subscription")
+public PaymentDto paySubscription(@RequestParam Long userId, @RequestBody PaymentDto dto) {
+    // Gọi hàm mới vừa viết
+    PaymentDto result = paymentService.payForSubscription(userId, dto);
+    return result;
+}
+   @GetMapping("/my-station/status/{status}")
+   public List<PaymentDto> getPaymentsByStationAndStatus(
+       @RequestHeader("X-User-Role") String role,
+       @RequestHeader("X-Station-Id") Long stationId,
+       @PathVariable String status) {
+
+       checkRole(role, "STAFF", "ADMIN");
+
+       return paymentService.getPaymentsByStationAndStatus(stationId, status);
+   }
+   @PostMapping("/confirm")
+   public PaymentDto confirmPayment(
+       @RequestHeader("X-User-Role") String role,
+         @RequestBody PaymentDto dto) {
+       checkRole(role, "STAFF", "ADMIN");
+       return paymentService.confirmPayment(dto);
+   }
 }
 
 

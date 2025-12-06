@@ -8,6 +8,7 @@ import {
   FaHeadset,
   FaSignOutAlt,
   FaBell,
+  FaBox
 } from "react-icons/fa";
 
 // === DỮ LIỆU THÔNG BÁO GIẢ (MOCK) ===
@@ -62,7 +63,7 @@ const CustomerLayout = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-950 text-gray-100 font-inter">
+    <div className="flex h-screen bg-gray-950 text-gray-100 font-inter">
       {/* SIDEBAR */}
       <aside className="w-64 bg-gray-900 p-6 flex flex-col justify-between">
         <div>
@@ -171,22 +172,15 @@ const CustomerLayout = () => {
                   label="Hỗ trợ"
                   onClick={() => navigate("/driver/support-center")}
                 />
+                <SidebarItem
+                  icon={<FaBox />}
+                  label="Gói thuê"
+                  onClick={() => navigate("/driver/rental-packages")}
+                />
               </>
             )}
 
-            {/* ROLE_STAFF (Giữ nguyên) */}
-            {user?.role === "ROLE_STAFF" && (
-              <>
-                {/* ... */}
-              </>
-            )}
-
-            {/* ROLE_ADMIN (Giữ nguyên) */}
-            {user?.role === "ROLE_ADMIN" && (
-              <>
-                {/* ... */}
-              </>
-            )}
+          
           </nav>
         </div>
 

@@ -4,7 +4,8 @@ import {
   FaTachometerAlt,
   FaBatteryFull,
   FaExchangeAlt,
-  FaSignOutAlt, // 1. Import icon đăng xuất
+  FaSignOutAlt,
+  FaCalendarAlt // 1. Import icon đăng xuất
 } from "react-icons/fa";
 import { AuthContext } from "../../services/AuthContext"; // 2. Import AuthContext
 
@@ -62,7 +63,7 @@ const StaffLayout = () => {
         {/* 6. Bọc phần logo và nav vào 1 div */}
         <div>
           <h2 className="text-2xl font-bold text-white mb-8 text-center">
-            🔋 BSS Staff
+           BSS Staff
           </h2>
 
           <nav className="flex flex-col gap-3">
@@ -75,6 +76,11 @@ const StaffLayout = () => {
               to="/staff/inventory"
               icon={<FaBatteryFull />}
               label="Quản lý Tồn kho"
+            />
+            <SidebarLink 
+            to="/staff/bookings"
+            icon={<FaCalendarAlt />}
+            label="Quản lý Đặt lịch"
             />
             <SidebarLink
               to="/staff/transactions"
@@ -97,15 +103,7 @@ const StaffLayout = () => {
 
       {/* Main Content (Giữ nguyên) */}
       <main className="flex-1 p-8 overflow-y-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Xin chào, Nhân viên trạm 👋
-          </h1>
-          <p className="text-gray-400">
-            Hệ thống quản lý vận hành trạm đổi pin.
-          </p>
-        </div>
+       
 
         {/* Main Panel */}
         <div className="bg-gray-900 p-6 rounded-xl shadow-md border border-gray-800">

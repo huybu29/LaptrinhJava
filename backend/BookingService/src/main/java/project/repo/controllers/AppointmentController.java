@@ -138,6 +138,23 @@ public class AppointmentController {
     return appointmentService.existsById(id);
     
 }
-   
+   @GetMapping("/my-station")
+    public List<AppointmentDTO> getAppointmentsByStation(
+            @RequestHeader("X-Station-Id") Long stationId,
+            @RequestHeader("X-User-Role") String role) {  
+             
+        checkRole(role, "STAFF", "ADMIN");
+        return appointmentService.getAppointmentsByStation(stationId);
+    }
+    @PutMapping("/{id}/status")
+    public AppointmentDTO updateAppointmentStatus(
+            @PathVariable Long id,
+            @RequestBody String status) {
+
+    
+        Appointment.AppointmentStatus statusEnum =
+            Appointment.AppointmentStatus.valueOf(status.toUpperCase());
+        return appointmentService.updateStatus(id, statusEnum);
+    }
 }
 

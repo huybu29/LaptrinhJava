@@ -19,17 +19,11 @@ public interface BatteryRepository extends JpaRepository<Battery, Long> {
 
     List<Battery> findByStationIdAndStatus(Long stationId, Battery.BatteryStatus status);
 
-    @Query("""
-        SELECT b FROM Battery b 
-        WHERE b.stationId = :stationId 
-          AND b.status = project.repo.entity.Battery.BatteryStatus.AVAILABLE
-          AND b.chargeCycles < b.maxChargeCycles 
-          AND b.soh >= 70.0
-    """)
-    List<Battery> findAvailableBatteriesAtStation(@Param("stationId") Long stationId);
-
    
-    List<Battery> findByChargeCyclesGreaterThanEqual(Integer maxChargeCycles);
-  List<Battery> findByStationIdAndStatus(Long stationId, String status);
+    Long countByStationIdAndStatus(Long stationId, Battery.BatteryStatus status);
+  
+  List<Battery> findByStationId(Long stationId);
+  List<Battery> findByStatus(Battery.BatteryStatus status);
   Optional<Battery> findByVehicleId(Long vehicleId);
+  
 }

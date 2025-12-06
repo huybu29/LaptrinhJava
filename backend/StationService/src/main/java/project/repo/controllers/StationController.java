@@ -35,7 +35,7 @@ public class StationController {
     // 🔹 Lấy tất cả trạm sạc (ADMIN, STAFF)
     @GetMapping
     public List<StationDTO> getAllStations(
-            @RequestHeader("X-User-Role") String role
+           
     ) {
         return stationService.getAllStations()
                 .stream()

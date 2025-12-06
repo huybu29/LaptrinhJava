@@ -11,6 +11,5 @@ public class BatteryDTO {
     private float soh;
     private Long stationId;
     private Long vehicleId;
-    private Integer chargeCycles;
-    private Integer maxChargeCycles;
+   
 }

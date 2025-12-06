@@ -11,6 +11,7 @@ import project.repo.entity.Appointment.AppointmentStatus;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     List<Appointment> findByCustomerId(Long customerId);
     List<Appointment> findByVehicleId(Long vehicleId);
+    List<Appointment> findByStationId(Long stationId);
     List<Appointment> findByStatus(AppointmentStatus status);
     boolean existsByVehicleIdAndStatusIn(Long vehicleId, Set<AppointmentStatus> statuses);
 }

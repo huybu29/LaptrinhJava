@@ -43,13 +43,13 @@ spring:
         - id: payment-service
           uri: lb://payment-service
           predicates:
-            - Path=/api/payments/**, /api/invoices/**, /api/battery-packages/** 
+            - Path=/api/payments/**, /api/invoices/**, /api/subscription-plans/** , /api/user-subscriptions/**, /api/swaps/**
           filters:
             - JwtAuthFilter
         - id: support-service
           uri: lb://support-service
           predicates:
-            - Path=/api/tickets/**, /api/notifications/**
+            - Path=/api/tickets/**, /api/notifications/**, /api/reviews/**
           filters:
               - JwtAuthFilter
 

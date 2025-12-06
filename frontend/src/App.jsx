@@ -19,6 +19,7 @@ import PaymentPage from './pages/customer/CustomerPayment';
 import CustomerTicketPage from './pages/customer/CustomerSupport';
 import CustomerBookingDetail from './pages/customer/CustomerBookingDetail';
 import CustomerPaymentDetail from './pages/customer/CustomerPaymentDetail';
+import SubscriptionPlans from './pages/customer/CustomerSubsciptionList';
 // Admin pages
 import AdminPage from './pages/admin/AdminPage';
 import AdminAppointments from './pages/admin/AdBookingManagement';
@@ -37,7 +38,10 @@ import StaffPage from "./pages/staff/StaffPage";
 import StaffInvetoryPage from './pages/staff/StaffBatteryManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import StaffTransactionPage from './pages/staff/StaffTransactionPage';
+import StationAppointmentManager from './pages/staff/StaffBookingManagement';
+
 import UserLocation from "./components/UserLocation";
+import SubscriptionCheckout from './pages/customer/CustomerPlanRegister';
 
 function App() {
   return (
@@ -62,6 +66,8 @@ function App() {
             <Route path="location" element={<UserLocation />} />
             <Route path="booking/:id" element={<CustomerBookingDetail />} />
             <Route path="payment/:id" element={<CustomerPaymentDetail />} />
+            <Route path="rental-packages" element={<SubscriptionPlans />} />
+            <Route path="checkout" element={<SubscriptionCheckout />} />
           </Route>
 
           {/* Admin Routes */}
@@ -83,7 +89,9 @@ function App() {
           <Route path="/staff" element={<StaffPage />}>
             <Route path='dashboard' element={<StaffDashboard />} />
             <Route path="inventory" element={<StaffInvetoryPage />} />
-            <Route path="transactions" element={<StaffTransactionPage />} />
+            <Route path="swap-process/:id" element={<StaffTransactionPage />} />
+            <Route path="bookings" element={<StationAppointmentManager />} />
+            
           </Route>
 
         </Routes>

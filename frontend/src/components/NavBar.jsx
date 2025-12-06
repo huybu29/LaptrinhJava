@@ -88,6 +88,11 @@ const CustomerLayout = () => {
                   label="Hỗ trợ"
                   onClick={() => navigate("/driver/support-center")}
                 />
+                <SidebarItem
+                  icon={<FaBox />}
+                  label="Gói thuê"
+                  onClick={() => navigate("/driver/rental-packages")}
+                />
               </>
             )}
 

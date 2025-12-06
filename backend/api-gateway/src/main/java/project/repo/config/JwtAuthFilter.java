@@ -44,7 +44,7 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
                 // 🔹 Lấy userId và role từ payload
                 Object userIdObj = claims.get("userId");
                 Object roleObj = claims.get("role"); // <— thêm dòng này
-
+                Object stationIdObj = claims.get("stationId"); // <— thêm dòng này
                 // 🔹 Gắn header mới vào request nếu có
                 var mutatedRequest = exchange.getRequest().mutate();
 
@@ -60,6 +60,11 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
                     System.out.println("✅ JWT hợp lệ. Gắn X-User-Role = " + role);
                 } else {
                     System.out.println("⚠️ JWT không chứa role.");
+                }
+                if (stationIdObj != null) {
+                    String stationId = String.valueOf(stationIdObj);
+                    mutatedRequest.header("X-Station-Id", stationId);
+                    System.out.println("✅ JWT hợp lệ. Gắn X-Station-Id = " + stationId);
                 }
 
                 exchange = exchange.mutate().request(mutatedRequest.build()).build();

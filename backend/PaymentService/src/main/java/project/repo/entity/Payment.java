@@ -27,15 +27,19 @@ public class Payment {
   private Long userID;
   private Long bookingID;
   private String invoiceNumber;
+  private Long stationId;
+  private Long swapId;
   private Integer amount;
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
   @Enumerated(EnumType.STRING)
   private PaymentMethod method;
+  private Long planId;      
+    private String billingCycle;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   public enum PaymentMethod {
-    CREDIT_CARD, BANK_TRANSFER, CASH,
+    CREDIT_CARD, BANK_TRANSFER, CASH,SUBSCRIPTION
   }
   public enum PaymentStatus {
     PENDING, COMPLETED, FAILED, REFUNDED

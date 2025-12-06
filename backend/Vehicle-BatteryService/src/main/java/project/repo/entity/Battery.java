@@ -22,15 +22,8 @@ public class Battery {
     
     private String batteryCode;
     private float soh; // State of Health (%)
-    
-    @Column(name = "charge_cycles")
-    @Builder.Default
-    private Integer chargeCycles = 0;
-    
-    @Column(name = "max_charge_cycles")
-    @Builder.Default
-    private Integer maxChargeCycles = 2000;
-    
+   
+   
     private Float capacityKwh;
     private Long stationId;
     
@@ -47,18 +40,5 @@ public class Battery {
         AVAILABLE, IN_USE, CHARGING, MAINTENANCE
     }
     
-    // Kiểm tra pin có sẵn sàng để sử dụng không
-    public boolean isAvailableForUse() {
-        return status == BatteryStatus.AVAILABLE && 
-               chargeCycles < maxChargeCycles && 
-               soh >= 70.0f; // SOH tối thiểu 70%
-    }
     
-    // Tăng chu kỳ sạc và kiểm tra ngưỡng
-    public void incrementChargeCycle() {
-        this.chargeCycles++;
-        if (this.chargeCycles >= this.maxChargeCycles) {
-            this.status = BatteryStatus.MAINTENANCE;
-        }
-    }
 }
